@@ -112,10 +112,10 @@ export function GameCard({ game }: GameCardProps) {
   const overUnderInfo = getOverUnderInfo();
 
   return (
-    <ThemedView style={[styles.container, { borderColor: colors.icon }]}>
+    <ThemedView style={[styles.container, styles.darkCard, { borderColor: '#333333' }]}>
       {/* Game Status */}
       <View style={styles.statusContainer}>
-        <ThemedText style={[styles.statusText, { color: colors.icon }]}>
+        <ThemedText style={[styles.statusText, styles.lightText]}>
           {getStatusDisplay()}
         </ThemedText>
       </View>
@@ -128,16 +128,16 @@ export function GameCard({ game }: GameCardProps) {
 
       {/* Betting Information */}
       {(game.spread !== undefined || game.totalPoints !== undefined) && (
-        <View style={[styles.bettingInfo, { borderTopColor: colors.icon }]}>
+        <View style={[styles.bettingInfo, { borderTopColor: '#333333' }]}>
           {game.spread !== undefined && spreadInfo.spreadText && (
-            <ThemedText style={[styles.bettingText, { color: colors.icon }]}>
+            <ThemedText style={[styles.bettingText, styles.lightText]}>
               {spreadInfo.spreadText}
             </ThemedText>
           )}
           {overUnderInfo.status && (
             <ThemedText style={[
               styles.bettingText,
-              { color: game.status !== 'scheduled' && overUnderInfo.isOver ? 'green' : game.status !== 'scheduled' && !overUnderInfo.isOver ? 'red' : colors.icon }
+              { color: game.status !== 'scheduled' && overUnderInfo.isOver ? '#22c55e' : game.status !== 'scheduled' && !overUnderInfo.isOver ? '#ef4444' : '#cccccc' }
             ]}>
               {overUnderInfo.status}
             </ThemedText>
@@ -156,6 +156,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     marginBottom: 12,
   },
+  darkCard: {
+    backgroundColor: '#2a2a2a',
+  },
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -166,6 +169,9 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  lightText: {
+    color: '#ffffff',
   },
   teamsContainer: {
     gap: 6,

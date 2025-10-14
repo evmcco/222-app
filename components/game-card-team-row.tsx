@@ -14,7 +14,7 @@ export const GameCardTeamRow = ({ teamWon, abbr, isCovering, score }: GameCardTe
     <View style={styles.teamContainer}>
       <View style={styles.teamInfo}>
         <View style={styles.teamNameContainer}>
-          <ThemedText style={[styles.teamAbbr, teamWon ? styles.winnerText : styles.loserText]}>
+          <ThemedText style={[styles.teamAbbr, styles.lightText, teamWon ? styles.winnerText : styles.loserText]}>
             {abbr}
           </ThemedText>
         </View>
@@ -22,7 +22,7 @@ export const GameCardTeamRow = ({ teamWon, abbr, isCovering, score }: GameCardTe
           {isCovering && (
             <ThemedText style={styles.coveringCheck}>✓</ThemedText>
           )}
-          <ThemedText style={[styles.score, teamWon ? styles.winnerText : styles.loserText]}>
+          <ThemedText style={[styles.score, styles.lightText, teamWon ? styles.winnerText : styles.loserText]}>
             {score}
           </ThemedText>
         </View>
@@ -47,6 +47,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 500,
   },
+  lightText: {
+    color: '#ffffff',
+  },
   scoreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -62,12 +65,13 @@ const styles = StyleSheet.create({
   },
   coveringCheck: {
     fontSize: 18,
-    color: 'green',
+    color: '#22c55e',
     fontWeight: 'bold',
     marginRight: 6,
   },
   winnerText: {
     fontWeight: 800,
+    // color: '#22c55e',
   },
   loserText: {
     color: 'grey'

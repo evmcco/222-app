@@ -11,13 +11,13 @@ const dummyGames: GameData[] = [
     homeTeam: {
       name: 'Georgia Bulldogs',
       abbreviation: 'UGA',
-      score: 31,
+      score: 21,
       color: '#BA0C2F',
     },
     awayTeam: {
       name: 'Alabama Crimson Tide',
       abbreviation: 'ALA',
-      score: 24,
+      score: 20,
       color: '#9E1B32',
     },
     status: 'final',
@@ -192,10 +192,10 @@ export default function HomeScreen() {
   );
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <ThemedText type="title">College Football</ThemedText>
-        <ThemedText style={styles.subtitle}>Game Scores & Covers</ThemedText>
+    <ThemedView style={[styles.container, styles.darkContainer]}>
+      <ThemedView style={[styles.header, styles.darkHeader]}>
+        <ThemedText type="title" style={styles.lightText}>College Football</ThemedText>
+        <ThemedText style={[styles.subtitle, styles.lightSubtitle]}>Game Scores & Covers</ThemedText>
       </ThemedView>
 
       <FlatList
@@ -215,14 +215,27 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 64,
   },
+  darkContainer: {
+    backgroundColor: '#1a1a1a',
+  },
   header: {
     marginBottom: 20,
     paddingTop: 16,
+  },
+  darkHeader: {
+    backgroundColor: 'transparent',
   },
   subtitle: {
     fontSize: 16,
     opacity: 0.7,
     marginTop: 4,
+  },
+  lightText: {
+    color: '#ffffff',
+  },
+  lightSubtitle: {
+    color: '#cccccc',
+    opacity: 1,
   },
   gamesList: {
     paddingBottom: 20,
