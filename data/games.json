@@ -1,0 +1,1320 @@
+[
+  {
+    "id": "401757282",
+    "homeTeam": {
+      "name": "Liberty Flames",
+      "abbreviation": "LIB",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2335.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "New Mexico State Aggies",
+      "abbreviation": "NMSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/166.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Tue, Oct 14",
+    "startTime": "7:00 PM",
+    "spread": -10.5,
+    "totalPoints": 46.5
+  },
+  {
+    "id": "401761628",
+    "homeTeam": {
+      "name": "South Alabama Jaguars",
+      "abbreviation": "USA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/6.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Arkansas State Red Wolves",
+      "abbreviation": "ARST",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2032.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Tue, Oct 14",
+    "startTime": "7:30 PM",
+    "spread": -7.5,
+    "totalPoints": 58.5
+  },
+  {
+    "id": "401757281",
+    "homeTeam": {
+      "name": "Western Kentucky Hilltoppers",
+      "abbreviation": "WKU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/98.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Florida International Panthers",
+      "abbreviation": "FIU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2229.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Tue, Oct 14",
+    "startTime": "8:00 PM",
+    "spread": -10.5,
+    "totalPoints": 55.5
+  },
+  {
+    "id": "401757283",
+    "homeTeam": {
+      "name": "Jacksonville State Gamecocks",
+      "abbreviation": "JVST",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/55.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Delaware Blue Hens",
+      "abbreviation": "DEL",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/48.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Wed, Oct 15",
+    "startTime": "7:00 PM",
+    "spread": 2.5,
+    "totalPoints": 57.5
+  },
+  {
+    "id": "401757284",
+    "homeTeam": {
+      "name": "Sam Houston Bearkats",
+      "abbreviation": "SHSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2534.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "UTEP Miners",
+      "abbreviation": "UTEP",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2638.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Wed, Oct 15",
+    "startTime": "7:00 PM",
+    "spread": 2.5,
+    "totalPoints": 47.5
+  },
+  {
+    "id": "401762486",
+    "homeTeam": {
+      "name": "East Carolina Pirates",
+      "abbreviation": "ECU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/151.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Tulsa Golden Hurricane",
+      "abbreviation": "TLSA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/202.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Thu, Oct 16",
+    "startTime": "7:30 PM",
+    "spread": -17.5,
+    "totalPoints": 53.5
+  },
+  {
+    "id": "401754564",
+    "homeTeam": {
+      "name": "Miami Hurricanes",
+      "abbreviation": "MIA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2390.png",
+      "ranking": 2
+    },
+    "awayTeam": {
+      "name": "Louisville Cardinals",
+      "abbreviation": "LOU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/97.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Fri, Oct 17",
+    "startTime": "7:00 PM",
+    "spread": -13.5,
+    "totalPoints": 51.5
+  },
+  {
+    "id": "401752872",
+    "homeTeam": {
+      "name": "Minnesota Golden Gophers",
+      "abbreviation": "MINN",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/135.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Nebraska Cornhuskers",
+      "abbreviation": "NEB",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/158.png",
+      "ranking": 25
+    },
+    "status": "scheduled",
+    "date": "Fri, Oct 17",
+    "startTime": "8:00 PM",
+    "spread": 8.5,
+    "totalPoints": 46.5
+  },
+  {
+    "id": "401760396",
+    "homeTeam": {
+      "name": "Utah State Aggies",
+      "abbreviation": "USU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/328.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "San José State Spartans",
+      "abbreviation": "SJSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/23.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Fri, Oct 17",
+    "startTime": "9:00 PM",
+    "spread": -3.5,
+    "totalPoints": 65.5
+  },
+  {
+    "id": "401754371",
+    "homeTeam": {
+      "name": "California Golden Bears",
+      "abbreviation": "CAL",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/25.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "North Carolina Tar Heels",
+      "abbreviation": "UNC",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/153.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Fri, Oct 17",
+    "startTime": "10:30 PM",
+    "spread": -10.5,
+    "totalPoints": 47.5
+  },
+  {
+    "id": "401752745",
+    "homeTeam": {
+      "name": "Vanderbilt Commodores",
+      "abbreviation": "VAN",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/238.png",
+      "ranking": 17
+    },
+    "awayTeam": {
+      "name": "LSU Tigers",
+      "abbreviation": "LSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/99.png",
+      "ranking": 10
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "12:00 PM",
+    "spread": -2.5,
+    "totalPoints": 48.5
+  },
+  {
+    "id": "401754566",
+    "homeTeam": {
+      "name": "Duke Blue Devils",
+      "abbreviation": "DUKE",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/150.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Georgia Tech Yellow Jackets",
+      "abbreviation": "GT",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/59.png",
+      "ranking": 12
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "12:00 PM",
+    "spread": -1.5,
+    "totalPoints": 61.5
+  },
+  {
+    "id": "401752873",
+    "homeTeam": {
+      "name": "Michigan Wolverines",
+      "abbreviation": "MICH",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/130.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Washington Huskies",
+      "abbreviation": "WASH",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/264.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "12:00 PM",
+    "spread": -6.5,
+    "totalPoints": 50.5
+  },
+  {
+    "id": "401754569",
+    "homeTeam": {
+      "name": "Boston College Eagles",
+      "abbreviation": "BC",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/103.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "UConn Huskies",
+      "abbreviation": "CONN",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/41.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "12:00 PM",
+    "spread": -2.5,
+    "totalPoints": 58.5
+  },
+  {
+    "id": "401756925",
+    "homeTeam": {
+      "name": "Houston Cougars",
+      "abbreviation": "HOU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/248.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Arizona Wildcats",
+      "abbreviation": "ARIZ",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/12.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "12:00 PM",
+    "spread": -1.5,
+    "totalPoints": 45.5
+  },
+  {
+    "id": "401756927",
+    "homeTeam": {
+      "name": "TCU Horned Frogs",
+      "abbreviation": "TCU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2628.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Baylor Bears",
+      "abbreviation": "BAY",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/239.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "12:00 PM",
+    "spread": -2.5,
+    "totalPoints": 65.5
+  },
+  {
+    "id": "401762488",
+    "homeTeam": {
+      "name": "Tulane Green Wave",
+      "abbreviation": "TULN",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2655.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Army Black Knights",
+      "abbreviation": "ARMY",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/349.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "12:00 PM",
+    "spread": -9.5,
+    "totalPoints": 46.5
+  },
+  {
+    "id": "401762839",
+    "homeTeam": {
+      "name": "Bowling Green Falcons",
+      "abbreviation": "BGSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/189.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Central Michigan Chippewas",
+      "abbreviation": "CMU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2117.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "12:00 PM",
+    "spread": -4.5,
+    "totalPoints": 42.5
+  },
+  {
+    "id": "401762841",
+    "homeTeam": {
+      "name": "Miami (OH) RedHawks",
+      "abbreviation": "M-OH",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/193.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Eastern Michigan Eagles",
+      "abbreviation": "EMU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2199.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "12:00 PM",
+    "spread": -13.5,
+    "totalPoints": 47.5
+  },
+  {
+    "id": "401752744",
+    "homeTeam": {
+      "name": "South Carolina Gamecocks",
+      "abbreviation": "SC",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2579.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Oklahoma Sooners",
+      "abbreviation": "OU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/201.png",
+      "ranking": 14
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "12:45 PM",
+    "spread": 5.5,
+    "totalPoints": 43.5
+  },
+  {
+    "id": "401756928",
+    "homeTeam": {
+      "name": "UCF Knights",
+      "abbreviation": "UCF",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2116.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "West Virginia Mountaineers",
+      "abbreviation": "WVU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/277.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "1:00 PM",
+    "spread": -7.5,
+    "totalPoints": 46.5
+  },
+  {
+    "id": "401762842",
+    "homeTeam": {
+      "name": "Toledo Rockets",
+      "abbreviation": "TOL",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2649.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Kent State Golden Flashes",
+      "abbreviation": "KENT",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2309.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "2:00 PM",
+    "spread": -25.5,
+    "totalPoints": 50.5
+  },
+  {
+    "id": "401762840",
+    "homeTeam": {
+      "name": "Massachusetts Minutemen",
+      "abbreviation": "MASS",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/113.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Buffalo Bulls",
+      "abbreviation": "BUFF",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2084.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "2:30 PM",
+    "spread": 16.5,
+    "totalPoints": 44.5
+  },
+  {
+    "id": "401752874",
+    "homeTeam": {
+      "name": "Northwestern Wildcats",
+      "abbreviation": "NU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/77.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Purdue Boilermakers",
+      "abbreviation": "PUR",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2509.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:00 PM",
+    "spread": -3.5,
+    "totalPoints": 46.5
+  },
+  {
+    "id": "401761633",
+    "homeTeam": {
+      "name": "UL Monroe Warhawks",
+      "abbreviation": "ULM",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2433.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Troy Trojans",
+      "abbreviation": "TROY",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2653.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:00 PM",
+    "spread": 5.5,
+    "totalPoints": 46.5
+  },
+  {
+    "id": "401752877",
+    "homeTeam": {
+      "name": "Wisconsin Badgers",
+      "abbreviation": "WIS",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/275.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Ohio State Buckeyes",
+      "abbreviation": "OSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/194.png",
+      "ranking": 1
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": 24.5,
+    "totalPoints": 40.5
+  },
+  {
+    "id": "401752878",
+    "homeTeam": {
+      "name": "Indiana Hoosiers",
+      "abbreviation": "IU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/84.png",
+      "ranking": 3
+    },
+    "awayTeam": {
+      "name": "Michigan State Spartans",
+      "abbreviation": "MSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/127.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": -27.5,
+    "totalPoints": 52.5
+  },
+  {
+    "id": "401752739",
+    "homeTeam": {
+      "name": "Arkansas Razorbacks",
+      "abbreviation": "ARK",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/8.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Texas A&M Aggies",
+      "abbreviation": "TA&M",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/245.png",
+      "ranking": 4
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": 7.5,
+    "totalPoints": 61.5
+  },
+  {
+    "id": "401752742",
+    "homeTeam": {
+      "name": "Georgia Bulldogs",
+      "abbreviation": "UGA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/61.png",
+      "ranking": 9
+    },
+    "awayTeam": {
+      "name": "Ole Miss Rebels",
+      "abbreviation": "MISS",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/145.png",
+      "ranking": 5
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": -7.5,
+    "totalPoints": 54.5
+  },
+  {
+    "id": "401754565",
+    "homeTeam": {
+      "name": "Clemson Tigers",
+      "abbreviation": "CLEM",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/228.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "SMU Mustangs",
+      "abbreviation": "SMU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2567.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": -9.5,
+    "totalPoints": 54.5
+  },
+  {
+    "id": "401760392",
+    "homeTeam": {
+      "name": "Air Force Falcons",
+      "abbreviation": "AFA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2005.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Wyoming Cowboys",
+      "abbreviation": "WYO",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2751.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": -3.5,
+    "totalPoints": 58.5
+  },
+  {
+    "id": "401760393",
+    "homeTeam": {
+      "name": "Boise State Broncos",
+      "abbreviation": "BOIS",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/68.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "UNLV Rebels",
+      "abbreviation": "UNLV",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2439.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": -10.5,
+    "totalPoints": 63.5
+  },
+  {
+    "id": "401761629",
+    "homeTeam": {
+      "name": "App State Mountaineers",
+      "abbreviation": "APP",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2026.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Coastal Carolina Chanticleers",
+      "abbreviation": "CCU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/324.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": -10.5,
+    "totalPoints": 50.5
+  },
+  {
+    "id": "401761631",
+    "homeTeam": {
+      "name": "James Madison Dukes",
+      "abbreviation": "JMU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/256.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Old Dominion Monarchs",
+      "abbreviation": "ODU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/295.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": -1.5,
+    "totalPoints": 46.5
+  },
+  {
+    "id": "401761632",
+    "homeTeam": {
+      "name": "Marshall Thundering Herd",
+      "abbreviation": "MRSH",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/276.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Texas State Bobcats",
+      "abbreviation": "TXST",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/326.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": 2.5,
+    "totalPoints": 64.5
+  },
+  {
+    "id": "401762489",
+    "homeTeam": {
+      "name": "Charlotte 49ers",
+      "abbreviation": "CLT",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2429.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Temple Owls",
+      "abbreviation": "TEM",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/218.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": 12.5,
+    "totalPoints": 48.5
+  },
+  {
+    "id": "401762491",
+    "homeTeam": {
+      "name": "North Texas Mean Green",
+      "abbreviation": "UNT",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/249.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "UTSA Roadrunners",
+      "abbreviation": "UTSA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2636.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": -4.5,
+    "totalPoints": 67.5
+  },
+  {
+    "id": "401762838",
+    "homeTeam": {
+      "name": "Ball State Cardinals",
+      "abbreviation": "BALL",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2050.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Akron Zips",
+      "abbreviation": "AKR",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2006.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": 1.5,
+    "totalPoints": 42.5
+  },
+  {
+    "id": "401762843",
+    "homeTeam": {
+      "name": "Ohio Bobcats",
+      "abbreviation": "OHIO",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/195.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Northern Illinois Huskies",
+      "abbreviation": "NIU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2459.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "3:30 PM",
+    "spread": -10.5,
+    "totalPoints": 41.5
+  },
+  {
+    "id": "401756923",
+    "homeTeam": {
+      "name": "Arizona State Sun Devils",
+      "abbreviation": "ASU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/9.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Texas Tech Red Raiders",
+      "abbreviation": "TTU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2641.png",
+      "ranking": 7
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "4:00 PM",
+    "spread": 9.5,
+    "totalPoints": 49.5
+  },
+  {
+    "id": "401762487",
+    "homeTeam": {
+      "name": "UAB Blazers",
+      "abbreviation": "UAB",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/5.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Memphis Tigers",
+      "abbreviation": "MEM",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/235.png",
+      "ranking": 22
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "4:00 PM",
+    "spread": 20.5,
+    "totalPoints": 63.5
+  },
+  {
+    "id": "401752741",
+    "homeTeam": {
+      "name": "Florida Gators",
+      "abbreviation": "FLA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/57.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Mississippi State Bulldogs",
+      "abbreviation": "MSST",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/344.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "4:15 PM",
+    "spread": -8.5,
+    "totalPoints": 51.5
+  },
+  {
+    "id": "401761668",
+    "homeTeam": {
+      "name": "Louisiana Ragin' Cajuns",
+      "abbreviation": "UL",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/309.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Southern Miss Golden Eagles",
+      "abbreviation": "USM",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2572.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "5:00 PM",
+    "spread": 3.5,
+    "totalPoints": 54.5
+  },
+  {
+    "id": "401752876",
+    "homeTeam": {
+      "name": "Rutgers Scarlet Knights",
+      "abbreviation": "RUTG",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/164.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Oregon Ducks",
+      "abbreviation": "ORE",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2483.png",
+      "ranking": 8
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "6:30 PM",
+    "spread": 17.5,
+    "totalPoints": 60.5
+  },
+  {
+    "id": "401752951",
+    "homeTeam": {
+      "name": "Virginia Cavaliers",
+      "abbreviation": "UVA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/258.png",
+      "ranking": 18
+    },
+    "awayTeam": {
+      "name": "Washington State Cougars",
+      "abbreviation": "WSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/265.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "6:30 PM",
+    "spread": -17.5,
+    "totalPoints": 56.5
+  },
+  {
+    "id": "401752743",
+    "homeTeam": {
+      "name": "Kentucky Wildcats",
+      "abbreviation": "UK",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/96.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Texas Longhorns",
+      "abbreviation": "TEX",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/251.png",
+      "ranking": 21
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "7:00 PM",
+    "spread": 12.5,
+    "totalPoints": 42.5
+  },
+  {
+    "id": "401752875",
+    "homeTeam": {
+      "name": "Iowa Hawkeyes",
+      "abbreviation": "IOWA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2294.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Penn State Nittany Lions",
+      "abbreviation": "PSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/213.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "7:00 PM",
+    "spread": -2.5,
+    "totalPoints": 40.5
+  },
+  {
+    "id": "401752879",
+    "homeTeam": {
+      "name": "UCLA Bruins",
+      "abbreviation": "UCLA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/26.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Maryland Terrapins",
+      "abbreviation": "MD",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/120.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "7:00 PM",
+    "spread": -3.5,
+    "totalPoints": 51.5
+  },
+  {
+    "id": "401760394",
+    "homeTeam": {
+      "name": "Colorado State Rams",
+      "abbreviation": "CSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/36.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Hawai'i Rainbow Warriors",
+      "abbreviation": "HAW",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/62.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "7:00 PM",
+    "spread": -2.5,
+    "totalPoints": 53.5
+  },
+  {
+    "id": "401761630",
+    "homeTeam": {
+      "name": "Georgia Southern Eagles",
+      "abbreviation": "GASO",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/290.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Georgia State Panthers",
+      "abbreviation": "GAST",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2247.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "7:00 PM",
+    "spread": -6.5,
+    "totalPoints": 61.5
+  },
+  {
+    "id": "401752738",
+    "homeTeam": {
+      "name": "Alabama Crimson Tide",
+      "abbreviation": "ALA",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/333.png",
+      "ranking": 6
+    },
+    "awayTeam": {
+      "name": "Tennessee Volunteers",
+      "abbreviation": "TENN",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2633.png",
+      "ranking": 11
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "7:30 PM",
+    "spread": -9.5,
+    "totalPoints": 58.5
+  },
+  {
+    "id": "401752871",
+    "homeTeam": {
+      "name": "Notre Dame Fighting Irish",
+      "abbreviation": "ND",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/87.png",
+      "ranking": 13
+    },
+    "awayTeam": {
+      "name": "USC Trojans",
+      "abbreviation": "USC",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/30.png",
+      "ranking": 20
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "7:30 PM",
+    "spread": -8.5,
+    "totalPoints": 61.5
+  },
+  {
+    "id": "401762490",
+    "homeTeam": {
+      "name": "South Florida Bulls",
+      "abbreviation": "USF",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/58.png",
+      "ranking": 19
+    },
+    "awayTeam": {
+      "name": "Florida Atlantic Owls",
+      "abbreviation": "FAU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2226.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "7:30 PM",
+    "spread": -21.5,
+    "totalPoints": 74.5
+  },
+  {
+    "id": "401754568",
+    "homeTeam": {
+      "name": "Syracuse Orange",
+      "abbreviation": "SYR",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/183.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Pittsburgh Panthers",
+      "abbreviation": "PITT",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/221.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "7:30 PM",
+    "spread": 10.5,
+    "totalPoints": 55.5
+  },
+  {
+    "id": "401752740",
+    "homeTeam": {
+      "name": "Auburn Tigers",
+      "abbreviation": "AUB",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Missouri Tigers",
+      "abbreviation": "MIZ",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/142.png",
+      "ranking": 16
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "7:45 PM",
+    "spread": 1.5,
+    "totalPoints": 43.5
+  },
+  {
+    "id": "401756924",
+    "homeTeam": {
+      "name": "BYU Cougars",
+      "abbreviation": "BYU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/252.png",
+      "ranking": 15
+    },
+    "awayTeam": {
+      "name": "Utah Utes",
+      "abbreviation": "UTAH",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/254.png",
+      "ranking": 23
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "8:00 PM",
+    "spread": 3.5,
+    "totalPoints": 49.5
+  },
+  {
+    "id": "401756926",
+    "homeTeam": {
+      "name": "Oklahoma State Cowboys",
+      "abbreviation": "OKST",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/197.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Cincinnati Bearcats",
+      "abbreviation": "CIN",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2132.png",
+      "ranking": 24
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "8:00 PM",
+    "spread": 22.5,
+    "totalPoints": 58.5
+  },
+  {
+    "id": "401760395",
+    "homeTeam": {
+      "name": "New Mexico Lobos",
+      "abbreviation": "UNM",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/167.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Nevada Wolf Pack",
+      "abbreviation": "NEV",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/2440.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "9:45 PM",
+    "spread": -12.5,
+    "totalPoints": 49.5
+  },
+  {
+    "id": "401752941",
+    "homeTeam": {
+      "name": "Oregon State Beavers",
+      "abbreviation": "ORST",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/204.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Lafayette Leopards",
+      "abbreviation": "LAF",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/322.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "10:00 PM"
+  },
+  {
+    "id": "401754567",
+    "homeTeam": {
+      "name": "Stanford Cardinal",
+      "abbreviation": "STAN",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/24.png",
+      "ranking": 99
+    },
+    "awayTeam": {
+      "name": "Florida State Seminoles",
+      "abbreviation": "FSU",
+      "score": 0,
+      "logo": "https://a.espncdn.com/i/teamlogos/ncaa/500/52.png",
+      "ranking": 99
+    },
+    "status": "scheduled",
+    "date": "Sat, Oct 18",
+    "startTime": "10:30 PM",
+    "spread": 17.5,
+    "totalPoints": 53.5
+  }
+]

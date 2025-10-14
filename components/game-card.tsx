@@ -1,7 +1,5 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GameCardTeamRow } from './game-card-team-row';
@@ -12,18 +10,24 @@ export interface GameData {
     name: string;
     abbreviation: string;
     score: number;
-    color: string;
+    logo?: string;
+    ranking?: number | null;
   };
   awayTeam: {
     name: string;
     abbreviation: string;
     score: number;
-    color: string;
+    logo?: string;
+    ranking?: number | null;
   };
   status: 'scheduled' | 'live' | 'final';
-  time: string;
+  date: string;
+  startTime: string;
+  currentGameTime?: string;
   quarter?: string;
   spread?: number;
+  moneyLineHome?: number;
+  moneyLineAway?: number;
   totalPoints?: number;
 }
 
@@ -32,14 +36,11 @@ interface GameCardProps {
 }
 
 export function GameCard({ game }: GameCardProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-
   const getStatusDisplay = () => {
     if (game.status === 'scheduled') {
-      return game.time;
+      return game.startTime;
     } else if (game.status === 'live') {
-      return `${game.quarter} ${game.time}`;
+      return `${game.quarter} ${game.currentGameTime}`;
     } else {
       return 'FINAL';
     }
@@ -116,14 +117,31 @@ export function GameCard({ game }: GameCardProps) {
       {/* Game Status */}
       <View style={styles.statusContainer}>
         <ThemedText style={[styles.statusText, styles.lightText]}>
+          {game.date}
+        </ThemedText>
+        <ThemedText style={[styles.statusText, styles.lightText]}>
           {getStatusDisplay()}
         </ThemedText>
       </View>
       <View style={styles.teamsContainer}>
         {/* Away Team */}
-        <GameCardTeamRow teamWon={awayWon} abbr={game.awayTeam.abbreviation} isCovering={spreadInfo.awayIsCovering} score={game.awayTeam.score} />
+        <GameCardTeamRow 
+          teamWon={awayWon} 
+          abbr={game.awayTeam.abbreviation} 
+          isCovering={spreadInfo.awayIsCovering} 
+          score={game.awayTeam.score}
+          logo={game.awayTeam.logo}
+          ranking={game.awayTeam.ranking}
+        />
         {/* Home Team */}
-        <GameCardTeamRow teamWon={homeWon} abbr={game.homeTeam.abbreviation} isCovering={spreadInfo.homeIsCovering} score={game.homeTeam.score} />
+        <GameCardTeamRow 
+          teamWon={homeWon} 
+          abbr={game.homeTeam.abbreviation} 
+          isCovering={spreadInfo.homeIsCovering} 
+          score={game.homeTeam.score}
+          logo={game.homeTeam.logo}
+          ranking={game.homeTeam.ranking}
+        />
       </View>
 
       {/* Betting Information */}
@@ -168,7 +186,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   lightText: {
     color: '#ffffff',
