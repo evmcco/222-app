@@ -5,6 +5,7 @@ import React from 'react';
 import { FlatList, StyleSheet } from 'react-native';
 
 const dummyGames: GameData[] = [
+  // Final Games
   {
     id: '1',
     homeTeam: {
@@ -27,6 +28,46 @@ const dummyGames: GameData[] = [
   {
     id: '2',
     homeTeam: {
+      name: 'Notre Dame Fighting Irish',
+      abbreviation: 'ND',
+      score: 127,
+      color: '#0C2340',
+    },
+    awayTeam: {
+      name: 'USC Trojans',
+      abbreviation: 'USC',
+      score: 28,
+      color: '#990000',
+    },
+    status: 'final',
+    time: 'Final',
+    spread: 30.5,
+    totalPoints: 48.5,
+  },
+  {
+    id: '3',
+    homeTeam: {
+      name: 'Penn State Nittany Lions',
+      abbreviation: 'PSU',
+      score: 35,
+      color: '#041E42',
+    },
+    awayTeam: {
+      name: 'Wisconsin Badgers',
+      abbreviation: 'WIS',
+      score: 14,
+      color: '#C5050C',
+    },
+    status: 'final',
+    time: 'Final',
+    spread: -10.5,
+    totalPoints: 44.5,
+  },
+
+  // Live Games
+  {
+    id: '4',
+    homeTeam: {
       name: 'Michigan Wolverines',
       abbreviation: 'MICH',
       score: 14,
@@ -45,7 +86,49 @@ const dummyGames: GameData[] = [
     totalPoints: 47.5,
   },
   {
-    id: '3',
+    id: '5',
+    homeTeam: {
+      name: 'LSU Tigers',
+      abbreviation: 'LSU',
+      score: 31,
+      color: '#461D7C',
+    },
+    awayTeam: {
+      name: 'Florida Gators',
+      abbreviation: 'FLA',
+      score: 27,
+      color: '#0021A5',
+    },
+    status: 'live',
+    time: '12:15',
+    quarter: '2nd',
+    spread: -4.5,
+    totalPoints: 51.0,
+  },
+  {
+    id: '6',
+    homeTeam: {
+      name: 'Oregon Ducks',
+      abbreviation: 'ORE',
+      score: 7,
+      color: '#154733',
+    },
+    awayTeam: {
+      name: 'Washington Huskies',
+      abbreviation: 'WASH',
+      score: 10,
+      color: '#4B2E83',
+    },
+    status: 'live',
+    time: '3:22',
+    quarter: '1st',
+    spread: -3.5,
+    totalPoints: 56.5,
+  },
+
+  // Scheduled Games
+  {
+    id: '7',
     homeTeam: {
       name: 'Texas Longhorns',
       abbreviation: 'TEX',
@@ -62,6 +145,44 @@ const dummyGames: GameData[] = [
     time: '3:30 PM EST',
     spread: -7.0,
     totalPoints: 58.5,
+  },
+  {
+    id: '8',
+    homeTeam: {
+      name: 'Clemson Tigers',
+      abbreviation: 'CLEM',
+      score: 0,
+      color: '#F56600',
+    },
+    awayTeam: {
+      name: 'Miami Hurricanes',
+      abbreviation: 'MIA',
+      score: 0,
+      color: '#F47321',
+    },
+    status: 'scheduled',
+    time: '7:00 PM EST',
+    spread: -3.0,
+    totalPoints: 45.0,
+  },
+  {
+    id: '9',
+    homeTeam: {
+      name: 'Auburn Tigers',
+      abbreviation: 'AUB',
+      score: 0,
+      color: '#0C2340',
+    },
+    awayTeam: {
+      name: 'Tennessee Volunteers',
+      abbreviation: 'TENN',
+      score: 0,
+      color: '#FF8200',
+    },
+    status: 'scheduled',
+    time: '8:00 PM EST',
+    spread: 1.5,
+    totalPoints: 52.0,
   },
 ];
 

@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { GameCardTeamRow } from './game-card-team-row';
 
 export interface GameData {
   id: string;
@@ -38,15 +39,77 @@ export function GameCard({ game }: GameCardProps) {
     if (game.status === 'scheduled') {
       return game.time;
     } else if (game.status === 'live') {
-      return `${game.quarter} " ${game.time}`;
+      return `${game.quarter} ${game.time}`;
     } else {
       return 'FINAL';
     }
   };
 
-  const isGameComplete = game.status === 'final';
-  const homeWon = isGameComplete && game.homeTeam.score > game.awayTeam.score;
-  const awayWon = isGameComplete && game.awayTeam.score > game.homeTeam.score;
+  const homeWon = game.homeTeam.score > game.awayTeam.score;
+  const awayWon = game.awayTeam.score > game.homeTeam.score;
+
+  // Calculate spread coverage
+  const getSpreadInfo = () => {
+    if (game.spread === undefined) {
+      return { homeIsCovering: false, awayIsCovering: false, spreadText: '', favoredTeam: '' };
+    }
+
+    // Determine favored team and create spread text
+    const isHomeFavored = game.spread < 0;
+    const favoredTeam = isHomeFavored ? game.homeTeam.abbreviation : game.awayTeam.abbreviation;
+    const spreadValue = Math.abs(game.spread);
+    const spreadText = `${favoredTeam} -${spreadValue}`;
+
+    if (game.status === 'scheduled') {
+      return { homeIsCovering: false, awayIsCovering: false, spreadText, favoredTeam };
+    }
+
+    const scoreDifference = game.homeTeam.score - game.awayTeam.score;
+
+    // Calculate if home team is covering
+    let homeIsCovering;
+    let awayIsCovering;
+    if (isHomeFavored) {
+      // Home team is favored, needs to win by more than the spread
+      homeIsCovering = scoreDifference > spreadValue;
+      awayIsCovering = scoreDifference < spreadValue
+    } else {
+      // Away team is favored, home team covers if they lose by less than spread or win
+      homeIsCovering = scoreDifference > -spreadValue;
+      awayIsCovering = scoreDifference < -spreadValue
+    }
+
+    return {
+      homeIsCovering,
+      awayIsCovering,
+      spreadText,
+      favoredTeam
+    };
+  };
+
+  // Calculate over/under status
+  const getOverUnderInfo = () => {
+    if (game.totalPoints === undefined) return { status: '', isOver: false };
+
+    const currentTotal = game.homeTeam.score + game.awayTeam.score;
+
+    if (game.status === 'scheduled') {
+      return { status: `O/U ${game.totalPoints}`, isOver: false };
+    } else if (game.status === 'live') {
+      return {
+        status: `O/U ${game.totalPoints} TOT ${currentTotal}`,
+        isOver: currentTotal > game.totalPoints
+      };
+    } else {
+      return {
+        status: currentTotal > game.totalPoints ? `O ${game.totalPoints} TOT ${currentTotal}` : `U ${game.totalPoints} TOT ${currentTotal}`,
+        isOver: currentTotal > game.totalPoints
+      };
+    }
+  };
+
+  const spreadInfo = getSpreadInfo();
+  const overUnderInfo = getOverUnderInfo();
 
   return (
     <ThemedView style={[styles.container, { borderColor: colors.icon }]}>
@@ -55,56 +118,28 @@ export function GameCard({ game }: GameCardProps) {
         <ThemedText style={[styles.statusText, { color: colors.icon }]}>
           {getStatusDisplay()}
         </ThemedText>
-        {game.status === 'live' && (
-          <View style={[styles.liveIndicator, { backgroundColor: '#ff4444' }]} />
-        )}
       </View>
-
-      {/* Away Team */}
-      <View style={styles.teamContainer}>
-        <View style={styles.teamInfo}>
-          <View style={styles.teamNameContainer}>
-            <ThemedText style={[styles.teamAbbr, awayWon && styles.winnerText]}>
-              {game.awayTeam.abbreviation}
-            </ThemedText>
-            <ThemedText style={[styles.teamName, { color: colors.icon }]}>
-              {game.awayTeam.name}
-            </ThemedText>
-          </View>
-          <ThemedText style={[styles.score, awayWon && styles.winnerText]}>
-            {game.awayTeam.score}
-          </ThemedText>
-        </View>
-      </View>
-
-      {/* Home Team */}
-      <View style={styles.teamContainer}>
-        <View style={styles.teamInfo}>
-          <View style={styles.teamNameContainer}>
-            <ThemedText style={[styles.teamAbbr, homeWon && styles.winnerText]}>
-              {game.homeTeam.abbreviation}
-            </ThemedText>
-            <ThemedText style={[styles.teamName, { color: colors.icon }]}>
-              {game.homeTeam.name}
-            </ThemedText>
-          </View>
-          <ThemedText style={[styles.score, homeWon && styles.winnerText]}>
-            {game.homeTeam.score}
-          </ThemedText>
-        </View>
+      <View style={styles.teamsContainer}>
+        {/* Away Team */}
+        <GameCardTeamRow teamWon={awayWon} abbr={game.awayTeam.abbreviation} isCovering={spreadInfo.awayIsCovering} score={game.awayTeam.score} />
+        {/* Home Team */}
+        <GameCardTeamRow teamWon={homeWon} abbr={game.homeTeam.abbreviation} isCovering={spreadInfo.homeIsCovering} score={game.homeTeam.score} />
       </View>
 
       {/* Betting Information */}
       {(game.spread !== undefined || game.totalPoints !== undefined) && (
         <View style={[styles.bettingInfo, { borderTopColor: colors.icon }]}>
-          {game.spread !== undefined && (
+          {game.spread !== undefined && spreadInfo.spreadText && (
             <ThemedText style={[styles.bettingText, { color: colors.icon }]}>
-              Spread: {game.spread > 0 ? '+' : ''}{game.spread}
+              {spreadInfo.spreadText}
             </ThemedText>
           )}
-          {game.totalPoints !== undefined && (
-            <ThemedText style={[styles.bettingText, { color: colors.icon }]}>
-              O/U: {game.totalPoints}
+          {overUnderInfo.status && (
+            <ThemedText style={[
+              styles.bettingText,
+              { color: game.status !== 'scheduled' && overUnderInfo.isOver ? 'green' : game.status !== 'scheduled' && !overUnderInfo.isOver ? 'red' : colors.icon }
+            ]}>
+              {overUnderInfo.status}
             </ThemedText>
           )}
         </View>
@@ -117,58 +152,29 @@ const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     marginBottom: 12,
   },
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 6,
     gap: 8,
   },
   statusText: {
     fontSize: 14,
     fontWeight: '600',
   },
-  liveIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  teamContainer: {
-    marginBottom: 8,
-  },
-  teamInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  teamNameContainer: {
-    flex: 1,
-  },
-  teamAbbr: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  teamName: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  score: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    minWidth: 40,
-    textAlign: 'right',
-  },
-  winnerText: {
-    fontWeight: '800',
+  teamsContainer: {
+    gap: 6,
   },
   bettingInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 12,
-    marginTop: 8,
+    paddingTop: 6,
+    marginTop: 6,
     borderTopWidth: 1,
   },
   bettingText: {
