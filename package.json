@@ -8,7 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "update-games": "curl -s 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80' > data/espn-raw.json && node scripts/transform-espn-data.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

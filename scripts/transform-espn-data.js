@@ -91,7 +91,20 @@ function transformESPNGame(espnGame) {
 // Transform the games
 const transformedGames = rawData.events
   .map(transformESPNGame)
-  .filter(game => game !== null); // Remove any null games
+  .filter(game => game !== null) // Remove any null games
+  .sort((a, b) => {
+    // Sort order: live games first, then scheduled, then final
+    const statusOrder = { 'live': 0, 'scheduled': 1, 'final': 2 };
+    
+    if (statusOrder[a.status] !== statusOrder[b.status]) {
+      return statusOrder[a.status] - statusOrder[b.status];
+    }
+    
+    // Within same status, sort by date/time
+    const aDate = new Date(`${a.date} ${a.startTime}`);
+    const bDate = new Date(`${b.date} ${b.startTime}`);
+    return aDate - bDate;
+  });
 
 // Save transformed data
 const outputPath = path.join(__dirname, '../data/games.json');

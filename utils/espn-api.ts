@@ -59,7 +59,21 @@ export async function fetchGames(): Promise<GameData[]> {
     const response = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80');
     const data: Response = await response.json();
     
-    return data.events.map(transformGame);
+    return data.events
+      .map(transformGame)
+      .sort((a, b) => {
+        // Sort order: live games first, then scheduled, then final
+        const statusOrder = { 'live': 0, 'scheduled': 1, 'final': 2 };
+        
+        if (statusOrder[a.status] !== statusOrder[b.status]) {
+          return statusOrder[a.status] - statusOrder[b.status];
+        }
+        
+        // Within same status, sort by date/time
+        const aDate = new Date(`${a.date} ${a.startTime}`);
+        const bDate = new Date(`${b.date} ${b.startTime}`);
+        return aDate - bDate;
+      });
   } catch (error) {
     console.error('Failed to fetch games:', error);
     return [];
