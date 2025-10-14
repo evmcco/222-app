@@ -1,6 +1,35 @@
 import { GameData } from '@/components/game-card';
 
-interface ESPNGame {
+interface Competitor {
+    id: string;
+    homeAway: 'home' | 'away';
+    team: {
+      id: string;
+      abbreviation: string;
+      displayName: string;
+      shortDisplayName: string;
+      logo: string;
+    };
+    score: string;
+  }
+
+interface Odds {
+    provider: {
+      id: string;
+      name: string;
+    };
+    details: string;
+    overUnder: number;
+    spread: number;
+    homeTeamOdds: {
+      moneyLine: number;
+    };
+    awayTeamOdds: {
+      moneyLine: number;
+    };
+  }
+
+interface Game {
   id: string;
   date: string;
   status: {
@@ -17,52 +46,27 @@ interface ESPNGame {
       shortDetail: string;
     };
   };
-  competitors: Array<{
-    id: string;
-    homeAway: 'home' | 'away';
-    team: {
-      id: string;
-      abbreviation: string;
-      displayName: string;
-      shortDisplayName: string;
-      logo: string;
-    };
-    score: string;
-  }>;
-  odds?: Array<{
-    provider: {
-      id: string;
-      name: string;
-    };
-    details: string;
-    overUnder: number;
-    spread: number;
-    homeTeamOdds: {
-      moneyLine: number;
-    };
-    awayTeamOdds: {
-      moneyLine: number;
-    };
-  }>;
+  competitors: Competitor[];
+  odds?: Odds[];
 }
 
-interface ESPNResponse {
-  events: ESPNGame[];
+interface Response {
+  events: Game[];
 }
 
-export async function fetchESPNGames(): Promise<GameData[]> {
+export async function fetchGames(): Promise<GameData[]> {
   try {
     const response = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80');
-    const data: ESPNResponse = await response.json();
+    const data: Response = await response.json();
     
-    return data.events.map(transformESPNGame);
+    return data.events.map(transformGame);
   } catch (error) {
-    console.error('Failed to fetch ESPN games:', error);
+    console.error('Failed to fetch games:', error);
     return [];
   }
 }
 
-function transformESPNGame(espnGame: ESPNGame): GameData {
+function transformGame(espnGame: Game): GameData {
   // Find home and away teams
   const homeTeam = espnGame.competitors.find(c => c.homeAway === 'home');
   const awayTeam = espnGame.competitors.find(c => c.homeAway === 'away');
@@ -81,8 +85,15 @@ function transformESPNGame(espnGame: ESPNGame): GameData {
     status = 'scheduled';
   }
 
-  // Format start time
-  const startTime = new Date(espnGame.date).toLocaleTimeString('en-US', {
+  // Format date and start time
+  const gameDate = new Date(espnGame.date);
+  const date = gameDate.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short', 
+    day: 'numeric',
+    timeZone: 'America/New_York'
+  });
+  const startTime = gameDate.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     timeZone: 'America/New_York'
@@ -115,6 +126,7 @@ function transformESPNGame(espnGame: ESPNGame): GameData {
       logo: awayTeam.team.logo,
     },
     status,
+    date,
     startTime,
     currentGameTime,
     quarter,
@@ -150,6 +162,7 @@ export function createSampleESPNGame(): GameData {
       score: 24,
       logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/333.png',
     },
+    date: 'Fri Oct 18th',
     status: 'final',
     startTime: '3:30 PM',
     spread: -3.5,
