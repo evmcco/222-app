@@ -1,53 +1,28 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Game } from '@/hooks/games';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GameCardTeamRow } from './game-card-team-row';
 
-export interface GameData {
-  id: string;
-  homeTeam: {
-    name: string;
-    abbreviation: string;
-    score: number;
-    logo?: string;
-    ranking?: number | null;
-  };
-  awayTeam: {
-    name: string;
-    abbreviation: string;
-    score: number;
-    logo?: string;
-    ranking?: number | null;
-  };
-  status: 'scheduled' | 'live' | 'final';
-  date: string;
-  startTime: string;
-  currentGameTime?: string;
-  quarter?: string;
-  spread?: number;
-  moneyLineHome?: number;
-  moneyLineAway?: number;
-  totalPoints?: number;
-}
 
 interface GameCardProps {
-  game: GameData;
+  game: Game;
 }
 
 export function GameCard({ game }: GameCardProps) {
   const getStatusDisplay = () => {
     if (game.status === 'scheduled') {
-      return game.startTime;
+      return game.start_time;
     } else if (game.status === 'live') {
-      return `${game.quarter} ${game.currentGameTime}`;
+      return `${game.quarter} ${game.current_game_time}`;
     } else {
       return 'FINAL';
     }
   };
 
-  const homeWon = game.homeTeam.score > game.awayTeam.score;
-  const awayWon = game.awayTeam.score > game.homeTeam.score;
+  const homeWon = game.home_team_score > game.away_team_score;
+  const awayWon = game.away_team_score > game.home_team_score;
 
   // Calculate spread coverage
   const getSpreadInfo = () => {
@@ -57,7 +32,7 @@ export function GameCard({ game }: GameCardProps) {
 
     // Determine favored team and create spread text
     const isHomeFavored = game.spread < 0;
-    const favoredTeam = isHomeFavored ? game.homeTeam.abbreviation : game.awayTeam.abbreviation;
+    const favoredTeam = isHomeFavored ? game.home_team.abbreviation : game.away_team.abbreviation;
     const spreadValue = Math.abs(game.spread);
     const spreadText = `${favoredTeam} -${spreadValue}`;
 
@@ -65,7 +40,7 @@ export function GameCard({ game }: GameCardProps) {
       return { homeIsCovering: false, awayIsCovering: false, spreadText, favoredTeam };
     }
 
-    const scoreDifference = game.homeTeam.score - game.awayTeam.score;
+    const scoreDifference = game.home_team_score - game.away_team_score;
 
     // Calculate if home team is covering
     let homeIsCovering;
@@ -90,21 +65,21 @@ export function GameCard({ game }: GameCardProps) {
 
   // Calculate over/under status
   const getOverUnderInfo = () => {
-    if (game.totalPoints === undefined) return { status: '', isOver: false };
+    if (game.total_points === undefined) return { status: '', isOver: false };
 
-    const currentTotal = game.homeTeam.score + game.awayTeam.score;
+    const currentTotal = game.home_team_score + game.away_team_score;
 
     if (game.status === 'scheduled') {
-      return { status: `O/U ${game.totalPoints}`, isOver: false };
+      return { status: `O/U ${game.total_points}`, isOver: false };
     } else if (game.status === 'live') {
       return {
-        status: `O/U ${game.totalPoints} TOT ${currentTotal}`,
-        isOver: currentTotal > game.totalPoints
+        status: `O/U ${game.total_points} TOT ${currentTotal}`,
+        isOver: currentTotal > game.total_points
       };
     } else {
       return {
-        status: currentTotal > game.totalPoints ? `O ${game.totalPoints} TOT ${currentTotal}` : `U ${game.totalPoints} TOT ${currentTotal}`,
-        isOver: currentTotal > game.totalPoints
+        status: currentTotal > game.total_points ? `O ${game.total_points} TOT ${currentTotal}` : `U ${game.total_points} TOT ${currentTotal}`,
+        isOver: currentTotal > game.total_points
       };
     }
   };
@@ -117,7 +92,7 @@ export function GameCard({ game }: GameCardProps) {
       {/* Game Status */}
       <View style={styles.statusContainer}>
         <ThemedText style={[styles.statusText, styles.lightText]}>
-          {game.date}
+          {game.date_display}
         </ThemedText>
         <ThemedText style={[styles.statusText, styles.lightText]}>
           {getStatusDisplay()}
@@ -125,27 +100,27 @@ export function GameCard({ game }: GameCardProps) {
       </View>
       <View style={styles.teamsContainer}>
         {/* Away Team */}
-        <GameCardTeamRow 
-          teamWon={awayWon} 
-          abbr={game.awayTeam.abbreviation} 
-          isCovering={spreadInfo.awayIsCovering} 
-          score={game.awayTeam.score}
-          logo={game.awayTeam.logo}
-          ranking={game.awayTeam.ranking}
+        <GameCardTeamRow
+          teamWon={awayWon}
+          abbr={game.away_team.abbreviation}
+          isCovering={spreadInfo.awayIsCovering}
+          score={game.away_team_score}
+          logo={game.away_team.logo}
+          ranking={game.away_team_ranking}
         />
         {/* Home Team */}
-        <GameCardTeamRow 
-          teamWon={homeWon} 
-          abbr={game.homeTeam.abbreviation} 
-          isCovering={spreadInfo.homeIsCovering} 
-          score={game.homeTeam.score}
-          logo={game.homeTeam.logo}
-          ranking={game.homeTeam.ranking}
+        <GameCardTeamRow
+          teamWon={homeWon}
+          abbr={game.home_team.abbreviation}
+          isCovering={spreadInfo.homeIsCovering}
+          score={game.home_team_score}
+          logo={game.home_team.logo}
+          ranking={game.home_team_ranking}
         />
       </View>
 
       {/* Betting Information */}
-      {(game.spread !== undefined || game.totalPoints !== undefined) && (
+      {(game.spread !== undefined || game.total_points !== undefined) && (
         <View style={[styles.bettingInfo, { borderTopColor: '#333333' }]}>
           {game.spread !== undefined && spreadInfo.spreadText && (
             <ThemedText style={[styles.bettingText, styles.lightText]}>

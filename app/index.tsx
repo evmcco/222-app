@@ -1,14 +1,15 @@
-import { GameCard, GameData } from '@/components/game-card';
+import { GameCard } from '@/components/game-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import espnGamesData from '@/data/games.json';
+import { Game, useGames } from '@/hooks/games';
 import React from 'react';
 import { FlatList, StyleSheet } from 'react-native';
 
-const games = espnGamesData as GameData[];
+// const games = espnGamesData as GameData[];
 
 export default function HomeScreen() {
-  const renderGameCard = ({ item }: { item: GameData }) => (
+  const { games } = useGames()
+  const renderGameCard = ({ item }: { item: Game }) => (
     <GameCard game={item} />
   );
 
