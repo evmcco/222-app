@@ -35,6 +35,22 @@ export interface Game {
   away_team: Team;
 }
 
+function getCurrentWeekRange() {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + daysToMonday);
+  monday.setHours(0, 0, 0, 0);
+  
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  
+  return { start: monday, end: sunday };
+}
+
 export function useGames() {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +65,10 @@ export function useGames() {
       setLoading(true);
       setError(null);
       console.log("fetching games")
+      
+      const { start, end } = getCurrentWeekRange();
+      console.log(`Fetching games from ${start.toISOString()} to ${end.toISOString()}`);
+      
       const { data, error: fetchError } = await supabase
         .from('games')
         .select(`
@@ -56,6 +76,8 @@ export function useGames() {
           home_team:teams!home_team_id(id, name, abbreviation, logo),
           away_team:teams!away_team_id(id, name, abbreviation, logo)
         `)
+        .gte('game_date', start.toISOString())
+        .lte('game_date', end.toISOString())
         .order('game_date', { ascending: true });
 
       if (fetchError) throw fetchError;
