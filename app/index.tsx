@@ -2,13 +2,26 @@ import { GameCard } from '@/components/game-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Game, useGames } from '@/hooks/games';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 
 // const games = espnGamesData as GameData[];
 
 export default function HomeScreen() {
   const { games, loading, refetch } = useGames()
+  const [showSpinner, setShowSpinner] = useState(false)
+  
+  useEffect(() => {
+    if (loading) {
+      setShowSpinner(true)
+    } else if (showSpinner) {
+      const timer = setTimeout(() => {
+        setShowSpinner(false)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [loading, showSpinner])
+
   const renderGameCard = ({ item }: { item: Game }) => (
     <GameCard game={item} />
   );
@@ -20,7 +33,7 @@ export default function HomeScreen() {
         <ThemedText style={[styles.subtitle, styles.lightSubtitle]}>Game Scores & Covers</ThemedText>
       </ThemedView>
 
-      {loading && (
+      {showSpinner && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#ffffff" />
         </View>
