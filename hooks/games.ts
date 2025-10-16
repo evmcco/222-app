@@ -60,7 +60,13 @@ export function useGames() {
 
       if (fetchError) throw fetchError;
 
-      setGames(data || []);
+      const sortedGames = (data || []).sort((a, b) => {
+        if (a.status === 'final' && b.status !== 'final') return 1;
+        if (a.status !== 'final' && b.status === 'final') return -1;
+        return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+      });
+
+      setGames(sortedGames);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch games');
       console.error('Error fetching games:', err);
