@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "cfb-covers",
-    "slug": "cfb-covers",
+    "slug": "222",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.twotwotwo.app"
     },
     "web": {
       "output": "static",
@@ -43,6 +44,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3e062a1e-7668-43b0-890d-0f58bba5325a"
+      }
+    },
+    "owner": "evmcco"
   }
 }
