@@ -31,21 +31,16 @@ export function GameCard({ game }: GameCardProps) {
     }
 
     // Determine favored team and create spread text
-    const isHomeFavored = game.spread < 0;
-    const favoredTeam = isHomeFavored ? game.home_team.abbreviation : game.away_team.abbreviation;
+    // The spread is the HOME TEAM SPREAD
+    const favoredTeam = game.spread < 0 ? game.home_team.abbreviation : game.away_team.abbreviation;
     const spreadValue = Math.abs(game.spread);
-    const spreadText = `${favoredTeam} -${spreadValue}`;
-
-    if (game.status === 'scheduled') {
-      return { homeIsCovering: false, awayIsCovering: false, spreadText, favoredTeam };
-    }
-
     const scoreDifference = game.home_team_score - game.away_team_score;
 
     // Calculate if home team is covering
     let homeIsCovering;
     let awayIsCovering;
-    if (isHomeFavored) {
+    // TODO handle games with spread of 0, means its a pickem
+    if (game.spread < 0) {
       // Home team is favored, needs to win by more than the spread
       homeIsCovering = scoreDifference > spreadValue;
       awayIsCovering = scoreDifference < spreadValue
@@ -55,11 +50,20 @@ export function GameCard({ game }: GameCardProps) {
       awayIsCovering = scoreDifference < -spreadValue
     }
 
+    const coveringTeam = homeIsCovering ? game.home_team.abbreviation : awayIsCovering ? game.away_team.abbreviation : 'PUSH'
+    const spreadText = coveringTeam === 'PUSH' ? 'PUSH'
+      : game.status === 'scheduled' ? `${favoredTeam} -${spreadValue}`
+        : `${coveringTeam} ${(favoredTeam === coveringTeam ? '-' : '+')}${spreadValue}`;
+
+
+    if (game.status === 'scheduled') {
+      return { homeIsCovering: false, awayIsCovering: false, spreadText, favoredTeam };
+    }
     return {
-      homeIsCovering,
-      awayIsCovering,
+      // homeIsCovering,
+      // awayIsCovering,
       spreadText,
-      favoredTeam
+      // favoredTeam
     };
   };
 
@@ -78,7 +82,7 @@ export function GameCard({ game }: GameCardProps) {
       };
     } else {
       return {
-        status: currentTotal > game.total_points ? `O ${game.total_points} TOT ${currentTotal}` : `U ${game.total_points} TOT ${currentTotal}`,
+        status: currentTotal > game.total_points ? `O ${game.total_points} | TOT ${currentTotal}` : `U ${game.total_points} | TOT ${currentTotal}`,
         isOver: currentTotal > game.total_points
       };
     }
@@ -103,7 +107,6 @@ export function GameCard({ game }: GameCardProps) {
         <GameCardTeamRow
           teamWon={awayWon}
           abbr={game.away_team.abbreviation}
-          isCovering={spreadInfo.awayIsCovering}
           score={game.away_team_score}
           logo={game.away_team.logo}
           ranking={game.away_team_ranking}
@@ -112,7 +115,6 @@ export function GameCard({ game }: GameCardProps) {
         <GameCardTeamRow
           teamWon={homeWon}
           abbr={game.home_team.abbreviation}
-          isCovering={spreadInfo.homeIsCovering}
           score={game.home_team_score}
           logo={game.home_team.logo}
           ranking={game.home_team_ranking}
@@ -123,7 +125,7 @@ export function GameCard({ game }: GameCardProps) {
       {(game.spread !== undefined || game.total_points !== undefined) && (
         <View style={[styles.bettingInfo, { borderTopColor: '#333333' }]}>
           {game.spread !== undefined && spreadInfo.spreadText && (
-            <ThemedText style={[styles.bettingText, styles.lightText, spreadInfo.homeIsCovering ? styles.greenText : spreadInfo.awayIsCovering ? styles.redText : null]}>
+            <ThemedText style={[styles.bettingText, game.status === 'scheduled' ? styles.lightText : game.status === 'live' ? styles.greenText : styles.yellowText]}>
               {spreadInfo.spreadText}
             </ThemedText>
           )}
@@ -171,6 +173,9 @@ const styles = StyleSheet.create({
   },
   redText: {
     color: '#ef4444'
+  },
+  yellowText: {
+    color: '#c39a33'
   },
   teamsContainer: {
     gap: 6,

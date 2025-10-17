@@ -6,13 +6,12 @@ import { StyleSheet, View } from 'react-native';
 type GameCardTeamRowProps = {
   teamWon: boolean,
   abbr: string,
-  isCovering: boolean,
   score: number,
   logo?: string,
   ranking?: number | null,
 }
 
-export const GameCardTeamRow = ({ teamWon, abbr, isCovering, score, logo, ranking }: GameCardTeamRowProps) => {
+export const GameCardTeamRow = ({ teamWon, abbr, score, logo, ranking }: GameCardTeamRowProps) => {
   return (
     <View style={styles.teamContainer}>
       <View style={styles.teamInfo}>
@@ -34,10 +33,7 @@ export const GameCardTeamRow = ({ teamWon, abbr, isCovering, score, logo, rankin
           </ThemedText>
         </View>
         <View style={styles.scoreContainer}>
-          {/* {isCovering && (
-            <ThemedText style={styles.coveringCheck}>✓</ThemedText>
-          )} */}
-          <ThemedText style={[styles.score, styles.lightText, teamWon ? styles.winnerText : styles.loserText, isCovering && styles.covering]}>
+          <ThemedText style={[styles.score, styles.lightText, teamWon ? styles.winnerText : styles.loserText]}>
             {score}
           </ThemedText>
         </View>
@@ -47,14 +43,6 @@ export const GameCardTeamRow = ({ teamWon, abbr, isCovering, score, logo, rankin
 }
 
 const styles = StyleSheet.create({
-  covering: {
-    // backgroundColor: 'gold',
-    // borderColor: 'gold',
-    // borderWidth: 2,
-    // borderStyle: 'solid',
-    // paddingHorizontal: 4,
-    // color: 'black'
-  },
   teamContainer: {
     paddingVertical: 4,
   },

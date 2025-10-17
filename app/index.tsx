@@ -1,7 +1,7 @@
 import { GameCard } from '@/components/game-card';
-import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Game, useGames } from '@/hooks/games';
+import { Image } from 'expo-image';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 
@@ -10,7 +10,7 @@ import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'r
 export default function HomeScreen() {
   const { games, loading, refetch } = useGames()
   const [showSpinner, setShowSpinner] = useState(false)
-  
+
   useEffect(() => {
     if (loading) {
       setShowSpinner(true)
@@ -28,10 +28,9 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={[styles.container, styles.darkContainer]}>
-      <ThemedView style={[styles.header, styles.darkHeader]}>
-        <ThemedText type="title" style={styles.lightText}>College Football</ThemedText>
-        <ThemedText style={[styles.subtitle, styles.lightSubtitle]}>Game Scores & Covers</ThemedText>
-      </ThemedView>
+      {/* <ThemedView style={[styles.header, styles.darkHeader]}>
+        <Image source={require('../assets/images/222-transparent.png')} style={styles.logo} />
+      </ThemedView> */}
 
       {showSpinner && (
         <View style={styles.loadingContainer}>
@@ -53,6 +52,10 @@ export default function HomeScreen() {
             colors={["#ffffff"]}
           />
         }
+        ListHeaderComponent={
+          <ThemedView style={[styles.header, styles.darkHeader]}>
+            <Image source={require('../assets/images/222-transparent.png')} style={styles.logo} />
+          </ThemedView>}
       />
     </ThemedView>
   );
@@ -69,7 +72,6 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
-    paddingTop: 16,
   },
   darkHeader: {
     backgroundColor: 'transparent',
@@ -87,7 +89,7 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   gamesList: {
-    paddingBottom: 20,
+    paddingBottom: 30,
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -101,5 +103,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 8,
     opacity: 0.8,
+  },
+  logo: {
+    width: 100,
+    height: 60,
   },
 });
