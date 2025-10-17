@@ -123,14 +123,14 @@ export function GameCard({ game }: GameCardProps) {
       {(game.spread !== undefined || game.total_points !== undefined) && (
         <View style={[styles.bettingInfo, { borderTopColor: '#333333' }]}>
           {game.spread !== undefined && spreadInfo.spreadText && (
-            <ThemedText style={[styles.bettingText, styles.lightText]}>
+            <ThemedText style={[styles.bettingText, styles.lightText, spreadInfo.homeIsCovering ? styles.greenText : spreadInfo.awayIsCovering ? styles.redText : null]}>
               {spreadInfo.spreadText}
             </ThemedText>
           )}
           {overUnderInfo.status && (
             <ThemedText style={[
               styles.bettingText,
-              { color: game.status !== 'scheduled' && overUnderInfo.isOver ? '#22c55e' : game.status !== 'scheduled' && !overUnderInfo.isOver ? '#ef4444' : '#cccccc' }
+              game.status !== 'scheduled' && overUnderInfo.isOver ? styles.greenText : game.status !== 'scheduled' && !overUnderInfo.isOver ? styles.redText : styles.lightText
             ]}>
               {overUnderInfo.status}
             </ThemedText>
@@ -165,6 +165,12 @@ const styles = StyleSheet.create({
   },
   lightText: {
     color: '#ffffff',
+  },
+  greenText: {
+    color: '#22c55e',
+  },
+  redText: {
+    color: '#ef4444'
   },
   teamsContainer: {
     gap: 6,
