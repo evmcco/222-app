@@ -28,12 +28,12 @@ export const GameCardTeamRow = ({ teamWon, abbr, score, logo, ranking }: GameCar
               {ranking}
             </ThemedText>
           )}
-          <ThemedText style={[styles.teamAbbr, styles.lightText, teamWon ? styles.winnerText : styles.loserText]}>
+          <ThemedText style={[styles.teamAbbr, styles.lightText]}>
             {abbr}
           </ThemedText>
         </View>
         <View style={styles.scoreContainer}>
-          <ThemedText style={[styles.score, styles.lightText, teamWon ? styles.winnerText : styles.loserText]}>
+          <ThemedText style={[styles.score, styles.lightText, teamWon && styles.winnerText]}>
             {score}
           </ThemedText>
         </View>
@@ -99,9 +99,5 @@ const styles = StyleSheet.create({
   },
   winnerText: {
     fontWeight: 800,
-    // color: '#22c55e',
   },
-  loserText: {
-    color: 'grey'
-  }
 });
