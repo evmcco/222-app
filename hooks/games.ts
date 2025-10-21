@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
+import { dummyGames } from './dummy-games';
 
 const supabaseUrl = 'https://npxtybkyglwntsnjeszq.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5weHR5Ymt5Z2x3bnRzbmplc3pxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1Mzg5MjcsImV4cCI6MjA3NjExNDkyN30.bjtWnjp3vegGGgbVpfHeQVPpFGCcEo_Pm2ayeY2QE0Q'
@@ -64,23 +65,34 @@ export function useGames() {
     try {
       setLoading(true);
       setError(null);
-      console.log("fetching games")
       
-      const { start, end } = getCurrentWeekRange();
-      console.log(`Fetching games from ${start.toISOString()} to ${end.toISOString()}`);
-      
-      const { data, error: fetchError } = await supabase
-        .from('games')
-        .select(`
-          *,
-          home_team:teams!home_team_id(id, name, abbreviation, logo),
-          away_team:teams!away_team_id(id, name, abbreviation, logo)
-        `)
-        .gte('game_date', start.toISOString())
-        .lte('game_date', end.toISOString())
-        .order('game_date', { ascending: true });
+      // const USE_DUMMY_DATA = true;
+      const USE_DUMMY_DATA = false;
 
-      if (fetchError) throw fetchError;
+      let data;
+      
+      if (USE_DUMMY_DATA) {
+        console.log("Using dummy data for App Store screenshots");
+        data = dummyGames;
+      } else {
+        console.log("Fetching games from API");
+        const { start, end } = getCurrentWeekRange();
+        console.log(`Fetching games from ${start.toISOString()} to ${end.toISOString()}`);
+        
+        const { data: apiData, error: fetchError } = await supabase
+          .from('games')
+          .select(`
+            *,
+            home_team:teams!home_team_id(id, name, abbreviation, logo),
+            away_team:teams!away_team_id(id, name, abbreviation, logo)
+          `)
+          .gte('game_date', start.toISOString())
+          .lte('game_date', end.toISOString())
+          .order('game_date', { ascending: true });
+
+        if (fetchError) throw fetchError;
+        data = apiData;
+      }
 
       const sortedGames = (data || []).sort((a, b) => {
         if (a.status === 'final' && b.status !== 'final') return 1;
