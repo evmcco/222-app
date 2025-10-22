@@ -1,4 +1,5 @@
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedScore } from '@/components/animated-score';
 import { Image } from 'expo-image';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -33,9 +34,10 @@ export const GameCardTeamRow = ({ teamWon, abbr, score, logo, ranking }: GameCar
           </ThemedText>
         </View>
         <View style={styles.scoreContainer}>
-          <ThemedText style={[styles.score, styles.lightText, teamWon && styles.winnerText]}>
-            {score}
-          </ThemedText>
+          <AnimatedScore 
+            score={score} 
+            teamWon={teamWon}
+          />
         </View>
       </View>
     </View>
