@@ -15,6 +15,9 @@ export function GameCard({ game }: GameCardProps) {
     if (game.status === 'scheduled') {
       return game.start_time;
     } else if (game.status === 'live') {
+      if (game.current_game_time === '0:00') {
+        return `End of ${game.quarter}`;
+      }
       return `${game.quarter} ${game.current_game_time}`;
     } else {
       return 'FINAL';
@@ -159,7 +162,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
-    gap: 8,
+    gap: 4,
   },
   statusText: {
     fontSize: 14,
