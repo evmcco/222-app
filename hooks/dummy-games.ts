@@ -1,6 +1,8 @@
-import { Game } from './games';
 
 // TEMPORARY DUMMY DATA FOR APP STORE SCREENSHOTS
+
+import { Game } from "./games";
+
 // DELETE THIS FILE AFTER SCREENSHOTS ARE COMPLETE
 export const dummyGames: Game[] = [
   {
@@ -21,6 +23,10 @@ export const dummyGames: Game[] = [
     spread: -21.5,
     total_points: 47.5,
     week_number: 14,
+    season_year: 2024,
+    game_date: '2024-11-24T00:00:00',
+    created_at: '2024-11-01T00:00:00',
+    updated_at: '2024-11-24T17:00:00',
     home_team: {
       id: 'uga',
       name: 'Georgia',
@@ -52,6 +58,10 @@ export const dummyGames: Game[] = [
     spread: -3.5,
     total_points: 58.5,
     week_number: 13,
+    season_year: 2024,
+    game_date: '2024-11-25T00:00:00',
+    created_at: '2024-11-01T00:00:00',
+    updated_at: '2024-11-25T17:00:00',
     home_team: {
       id: 'michigan',
       name: 'Michigan',
@@ -83,6 +93,10 @@ export const dummyGames: Game[] = [
     spread: -14.5,
     total_points: 45.5,
     week_number: 13,
+    season_year: 2024,
+    game_date: '2024-11-25T00:00:00',
+    created_at: '2024-11-01T00:00:00',
+    updated_at: '2024-11-25T20:30:00',
     home_team: {
       id: 'bama',
       name: 'Alabama',
@@ -114,6 +128,10 @@ export const dummyGames: Game[] = [
     spread: -2.5,
     total_points: 65.5,
     week_number: 14,
+    season_year: 2024,
+    game_date: '2024-11-30T00:00:00',
+    created_at: '2024-11-01T00:00:00',
+    updated_at: '2024-11-30T20:00:00',
     home_team: {
       id: 'texas',
       name: 'Texas',
@@ -145,6 +163,10 @@ export const dummyGames: Game[] = [
     spread: 3.5,
     total_points: 52.5,
     week_number: 14,
+    season_year: 2024,
+    game_date: '2024-11-30T00:00:00',
+    created_at: '2024-11-01T00:00:00',
+    updated_at: '2024-11-30T22:30:00',
     home_team: {
       id: 'oregon',
       name: 'Oregon',
@@ -176,6 +198,10 @@ export const dummyGames: Game[] = [
     spread: -10.5,
     total_points: 56.5,
     week_number: 13,
+    season_year: 2024,
+    game_date: '2024-11-25T00:00:00',
+    created_at: '2024-11-01T00:00:00',
+    updated_at: '2024-11-25T15:30:00',
     home_team: {
       id: 'fsu',
       name: 'Florida State',

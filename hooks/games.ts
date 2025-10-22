@@ -1,5 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-import { useQuery } from '@tanstack/react-query';
+import { createClient, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { dummyGames } from './dummy-games';
 
 const supabaseUrl = 'https://npxtybkyglwntsnjeszq.supabase.co'
@@ -14,7 +15,8 @@ export interface Team {
   logo: string;
 }
 
-export interface Game {
+// Raw database row structure (what comes from real-time updates)
+export interface GameRow {
   id: string;
   home_team_id: string;
   home_team_score: number;
@@ -32,9 +34,20 @@ export interface Game {
   spread: number;
   total_points: number;
   week_number: number;
+  season_year: number;
+  game_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Complete game object with team data (what we use in the UI)
+export interface Game extends GameRow {
   home_team: Team;
   away_team: Team;
 }
+
+// Use Supabase's built-in payload type
+export type GameRealtimePayload = RealtimePostgresChangesPayload<GameRow>;
 
 function getCurrentWeekRange() {
   const now = new Date();
@@ -88,12 +101,98 @@ async function fetchGames(): Promise<Game[]> {
 }
 
 export function useGames() {
+  const queryClient = useQueryClient();
+  
   const query = useQuery({
     queryKey: ['games'],
     queryFn: fetchGames,
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Set up real-time subscription
+  useEffect(() => {        
+    const subscription = supabase
+      .channel('games-changes')
+      .on(
+        'postgres_changes' as 'postgres_changes',
+        {
+          event: '*' as const, // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'games',
+        },
+        (payload: GameRealtimePayload) => {
+          console.log('Real-time update received:', payload);
+          
+          // Check if this change affects current week's games
+          const { start, end } = getCurrentWeekRange();
+          const gameDate = payload.new?.game_date || payload.old?.game_date;
+          
+          if (gameDate) {
+            const gameDateTime = new Date(gameDate);
+            const isInCurrentWeek = gameDateTime >= start && gameDateTime <= end;
+            
+            if (!isInCurrentWeek) {
+              console.log('Ignoring update - game not in current week');
+              return;
+            }
+          }
+          
+          // Update the cache directly with the real-time changes
+          queryClient.setQueryData(['games'], (oldGames: Game[] | undefined) => {
+            if (!oldGames) return oldGames;
+            
+            const { eventType, new: newRecord, old: oldRecord } = payload;
+            
+            switch (eventType) {
+              case 'INSERT':
+                // For INSERT, we need complete game data with teams, so just refetch
+                // Real-time INSERT won't have the joined team data
+                console.log('New game inserted, refetching to get complete data');
+                queryClient.invalidateQueries({ queryKey: ['games'] });
+                return oldGames;
+                
+              case 'UPDATE':
+                // Update existing game with new data
+                if (!newRecord) return oldGames;
+                
+                return oldGames.map(game => 
+                  game.id === newRecord.id 
+                    ? { 
+                        ...game, 
+                        ...newRecord,
+                        // Preserve team data since real-time updates don't include joins
+                        home_team: game.home_team,
+                        away_team: game.away_team
+                      } as Game
+                    : game
+                ).sort((a, b) => {
+                  if (a.status === 'final' && b.status !== 'final') return 1;
+                  if (a.status !== 'final' && b.status === 'final') return -1;
+                  return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+                });
+                
+              case 'DELETE':
+                // Remove deleted game
+                if (!oldRecord?.id) return oldGames;
+                return oldGames.filter(game => game.id !== oldRecord.id);
+                
+              default:
+                return oldGames;
+            }
+          });
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
+
+    // Cleanup subscription on unmount
+    return () => {
+      console.log('Cleaning up real-time subscription');
+      subscription.unsubscribe();
+    };
+  }, [queryClient]);
 
   return {
     games: query.data || [],
