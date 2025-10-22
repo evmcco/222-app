@@ -126,7 +126,7 @@ export function useGames() {
           
           // Check if this change affects current week's games
           const { start, end } = getCurrentWeekRange();
-          const gameDate = payload.new?.game_date || payload.old?.game_date;
+          const gameDate = (payload.new as GameRow)?.game_date || (payload.old as GameRow)?.game_date;
           
           if (gameDate) {
             const gameDateTime = new Date(gameDate);
