@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { dummyGames } from './dummy-games';
 
 const supabaseUrl = 'https://npxtybkyglwntsnjeszq.supabase.co'
@@ -52,62 +52,53 @@ function getCurrentWeekRange() {
   return { start: monday, end: sunday };
 }
 
-export function useGames() {
-  const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+async function fetchGames(): Promise<Game[]> {
+  // TOGGLE: Comment out this line to use production API data
+  // const USE_DUMMY_DATA = true;
+  const USE_DUMMY_DATA = false;
 
-  useEffect(() => {
-    fetchGames();
-  }, []);
-
-  async function fetchGames() {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // const USE_DUMMY_DATA = true;
-      const USE_DUMMY_DATA = false;
-
-      let data;
-      
-      if (USE_DUMMY_DATA) {
-        console.log("Using dummy data for App Store screenshots");
-        data = dummyGames;
-      } else {
-        console.log("Fetching games from API");
-        const { start, end } = getCurrentWeekRange();
-        console.log(`Fetching games from ${start.toISOString()} to ${end.toISOString()}`);
-        
-        const { data: apiData, error: fetchError } = await supabase
-          .from('games')
-          .select(`
-            *,
-            home_team:teams!home_team_id(id, name, abbreviation, logo),
-            away_team:teams!away_team_id(id, name, abbreviation, logo)
-          `)
-          .gte('game_date', start.toISOString())
-          .lte('game_date', end.toISOString())
-          .order('game_date', { ascending: true });
-
-        if (fetchError) throw fetchError;
-        data = apiData;
-      }
-
-      const sortedGames = (data || []).sort((a, b) => {
-        if (a.status === 'final' && b.status !== 'final') return 1;
-        if (a.status !== 'final' && b.status === 'final') return -1;
-        return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
-      });
-
-      setGames(sortedGames);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch games');
-      console.error('Error fetching games:', err);
-    } finally {
-      setLoading(false);
-    }
+  if (USE_DUMMY_DATA) {
+    console.log("Using dummy data for App Store screenshots");
+    return dummyGames;
   }
 
-  return { games, loading, error, refetch: fetchGames };
+  const { start, end } = getCurrentWeekRange();
+  console.log(`Fetching games from ${start.toISOString()} to ${end.toISOString()}`);
+  
+  const { data, error: fetchError } = await supabase
+    .from('games')
+    .select(`
+      *,
+      home_team:teams!home_team_id(id, name, abbreviation, logo),
+      away_team:teams!away_team_id(id, name, abbreviation, logo)
+    `)
+    .gte('game_date', start.toISOString())
+    .lte('game_date', end.toISOString())
+    .order('game_date', { ascending: true });
+
+  if (fetchError) throw fetchError;
+
+  const sortedGames = (data || []).sort((a, b) => {
+    if (a.status === 'final' && b.status !== 'final') return 1;
+    if (a.status !== 'final' && b.status === 'final') return -1;
+    return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+  });
+
+  return sortedGames;
+}
+
+export function useGames() {
+  const query = useQuery({
+    queryKey: ['games'],
+    queryFn: fetchGames,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  return {
+    games: query.data || [],
+    loading: query.isLoading,
+    error: query.error?.message || null,
+    refetch: query.refetch,
+  };
 }

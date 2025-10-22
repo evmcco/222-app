@@ -4,11 +4,12 @@ import { Game, useGames } from '@/hooks/games';
 import { Image } from 'expo-image';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 // const games = espnGamesData as GameData[];
 
 export default function HomeScreen() {
-  const { games, loading, refetch } = useGames()
+  const { games, loading, error, refetch } = useGames()
   const [showSpinner, setShowSpinner] = useState(false)
 
   useEffect(() => {
@@ -21,6 +22,18 @@ export default function HomeScreen() {
       return () => clearTimeout(timer)
     }
   }, [loading, showSpinner])
+
+  useEffect(() => {
+    if (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Network Error',
+        text2: 'Failed to load games. Please check your connection.',
+        visibilityTime: 3000,
+        autoHide: true,
+      });
+    }
+  }, [error])
 
   const renderGameCard = ({ item }: { item: Game }) => (
     <GameCard game={item} />
