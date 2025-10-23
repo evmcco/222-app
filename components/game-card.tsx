@@ -16,6 +16,8 @@ export function GameCard({ game }: GameCardProps) {
       return game.start_time;
     } else if (game.status === 'live') {
       if (game.current_game_time === '0:00') {
+        if (game.quarter === '2nd')
+          return 'Halftime'
         return `End of ${game.quarter}`;
       }
       return `${game.quarter} ${game.current_game_time}`;
