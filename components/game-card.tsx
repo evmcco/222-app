@@ -2,6 +2,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Game } from '@/hooks/games';
 import { useGameNotifications } from '@/hooks/use-game-notifications';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -14,6 +15,7 @@ interface GameCardProps {
 
 export function GameCard({ game }: GameCardProps) {
   const { isNotificationEnabled, toggleNotification } = useGameNotifications();
+  const { enableGameNotification, disableGameNotification, loading } = usePushNotifications();
 
   const getStatusDisplay = () => {
     if (game.status === 'scheduled') {
@@ -30,8 +32,20 @@ export function GameCard({ game }: GameCardProps) {
     }
   };
 
-  const handleBellPress = () => {
-    toggleNotification(game.id);
+  const handleBellPress = async () => {
+    if (isNotificationEnabled(game.id)) {
+      // Disable notification
+      const success = await disableGameNotification(game.id);
+      if (success) {
+        toggleNotification(game.id);
+      }
+    } else {
+      // Enable notification
+      const success = await enableGameNotification(game.id);
+      if (success) {
+        toggleNotification(game.id);
+      }
+    }
   };
 
   const showNotificationBell = game.status !== 'final';
