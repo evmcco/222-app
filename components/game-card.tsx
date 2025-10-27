@@ -1,8 +1,11 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Game } from '@/hooks/games';
+import { useGameNotifications } from '@/hooks/use-game-notifications';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { GameCardTeamRow } from './game-card-team-row';
 
 
@@ -11,6 +14,9 @@ interface GameCardProps {
 }
 
 export function GameCard({ game }: GameCardProps) {
+  const { isNotificationEnabled, toggleNotification } = useGameNotifications();
+  const { enableGameNotification, disableGameNotification, loading } = usePushNotifications();
+
   const getStatusDisplay = () => {
     if (game.status === 'scheduled') {
       return game.start_time;
@@ -25,6 +31,24 @@ export function GameCard({ game }: GameCardProps) {
       return 'FINAL';
     }
   };
+
+  const handleBellPress = async () => {
+    if (isNotificationEnabled(game.id)) {
+      // Disable notification
+      const success = await disableGameNotification(game.id);
+      if (success) {
+        toggleNotification(game.id);
+      }
+    } else {
+      // Enable notification
+      const success = await enableGameNotification(game.id);
+      if (success) {
+        toggleNotification(game.id);
+      }
+    }
+  };
+
+  const showNotificationBell = game.status !== 'final';
 
   const homeWon = game.home_team_score > game.away_team_score;
   const awayWon = game.away_team_score > game.home_team_score;
@@ -98,14 +122,29 @@ export function GameCard({ game }: GameCardProps) {
 
   return (
     <ThemedView style={[styles.container, styles.darkCard, { borderColor: '#333333' }]}>
-      {/* Game Status */}
       <View style={styles.statusContainer}>
-        <ThemedText style={[styles.statusText, styles.lightText]}>
-          {game.date_display}
-        </ThemedText>
-        <ThemedText style={[styles.statusText, styles.lightText]}>
-          {getStatusDisplay()}
-        </ThemedText>
+        <View style={styles.statusLeftContainer}>
+          {showNotificationBell && (
+            <TouchableOpacity
+              onPress={handleBellPress}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons
+                name={isNotificationEnabled(game.id) ? 'notifications' : 'notifications-outline'}
+                size={18}
+                color={isNotificationEnabled(game.id) ? '#fbbf24' : '#ffffff'}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.statusCenterContainer}>
+          <ThemedText style={[styles.statusText, styles.lightText]}>
+            {game.date_display}
+          </ThemedText>
+          <ThemedText style={[styles.statusText, styles.lightText]}>
+            {getStatusDisplay()}
+          </ThemedText>
+        </View>
       </View>
       <View style={styles.teamsContainer}>
         {/* Away Team */}
@@ -162,9 +201,27 @@ const styles = StyleSheet.create({
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    // justifyContent: 'space-between',
     marginBottom: 6,
-    gap: 4,
+    position: 'relative',
+    // borderColor: 'white',
+    // borderWidth: 1,
+    // borderStyle: 'solid',
+  },
+  statusLeftContainer: {
+    marginRight: 'auto',
+  },
+  statusRightContainer: {
+    marginLeft: 'auto',
+  },
+  statusCenterContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
   },
   statusText: {
     fontSize: 14,
