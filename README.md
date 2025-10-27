@@ -1,50 +1,58 @@
-# Welcome to your Expo app 👋
+# 222 Sports - College Football Tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native portfolio app demonstrating real-time data management, push notifications, and modern mobile development patterns.
 
-## Get started
+## Key Features
 
-1. Install dependencies
+- **Real-time Score Updates** with WebSocket subscriptions and animated UI changes
+- **Push Notifications** with game-specific alerts and local preference management  
+- **Betting Analytics** showing spread coverage and over/under tracking
+- **Offline-First Architecture** using TanStack React Query for intelligent caching
+- **Smooth Animations** with React Native Reanimated for scoreboard-style updates
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+**Frontend**: React Native 0.81.4, TypeScript, Expo SDK 54  
+**State Management**: TanStack React Query, AsyncStorage  
+**Backend**: Supabase (PostgreSQL + real-time subscriptions)  
+**Animations**: React Native Reanimated  
+**Navigation**: Expo Router with file-based routing  
+**Notifications**: Expo Notifications, Expo Haptics
 
-   ```bash
-   npx expo start
-   ```
+## Technical Highlights
 
-In the output, you'll find options to open the app in a
+### Real-time Data Management
+- Supabase WebSocket subscriptions with auto-reconnection and exponential backoff
+- TanStack React Query for intelligent caching and background sync
+- Optimistic UI updates with rollback on failure
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Push Notification Architecture  
+- Cross-platform push notifications with Expo
+- Local preference storage using AsyncStorage
+- Database-backed notification subscriptions
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Performance Optimizations
+- React Native's new architecture enabled
+- Efficient real-time filtering (live games only)
+- Animated score changes with React Native Reanimated
 
-## Get a fresh project
-
-When you're ready, run:
+## Getting Started
 
 ```bash
-npm run reset-project
+npm install
+npm start          # Start development server
+npm run ios        # iOS simulator  
+npm run android    # Android emulator
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Portfolio Notes
 
-## Learn more
+This app demonstrates several React Native best practices:
 
-To learn more about developing your project with Expo, look at the following resources:
+- **Modern State Management**: TanStack Query for server state, AsyncStorage for local preferences
+- **Real-time Features**: WebSocket integration with robust error handling and reconnection logic  
+- **Cross-platform Notifications**: Expo's unified push notification API with proper permission handling
+- **Performance**: New RN architecture, React Compiler, and efficient real-time data filtering
+- **Developer Experience**: TypeScript, file-based routing, comprehensive error handling
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+*Built as a portfolio project showcasing modern React Native development patterns*
