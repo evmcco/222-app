@@ -247,7 +247,7 @@ export function useGames() {
   useEffect(() => {
     
     console.log('🚀 Setting up real-time subscription with auto-reconnect');
-    subscriptionRef.current = createGamesSubscription(queryClient);
+    // subscriptionRef.current = createGamesSubscription(queryClient);
 
     // Cleanup subscription on unmount
     return () => {

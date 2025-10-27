@@ -41,10 +41,6 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={[styles.container, styles.darkContainer]}>
-      {/* <ThemedView style={[styles.header, styles.darkHeader]}>
-        <Image source={require('../assets/images/222-transparent.png')} style={styles.logo} />
-      </ThemedView> */}
-
       {showSpinner && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#ffffff" />
@@ -67,7 +63,7 @@ export default function HomeScreen() {
         }
         ListHeaderComponent={
           <ThemedView style={[styles.header, styles.darkHeader]}>
-            <Image source={require('../assets/images/222-transparent.png')} style={styles.logo} />
+            <Image source={require('../assets/images/222-logo.png')} style={styles.logo} />
           </ThemedView>}
       />
     </ThemedView>
@@ -85,6 +81,9 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
+    paddingHorizontal: 0,
+    marginHorizontal: 0,
+    alignItems: 'flex-start',
   },
   darkHeader: {
     backgroundColor: 'transparent',
@@ -118,7 +117,9 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   logo: {
-    width: 100,
-    height: 60,
+    width: 80,
+    height: 40,
+    resizeMode: 'contain',
+    padding: 0
   },
 });
