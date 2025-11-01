@@ -197,7 +197,7 @@ const createGamesSubscription = (queryClient: any, retryCount = 0) => {
       }
     )
     .subscribe((status, err) => {
-      console.log('🔄 Subscription status:', status);
+      console.log('🔄 Subscription status:', status, retryCount > 0 && `Retries: ${retryCount}`);
       
       if (err) {        
         // Auto-retry with exponential backoff
@@ -243,7 +243,7 @@ export function useGames() {
   useEffect(() => {
     
     console.log('🚀 Setting up real-time subscription with auto-reconnect');
-    // subscriptionRef.current = createGamesSubscription(queryClient);
+    subscriptionRef.current = createGamesSubscription(queryClient);
 
     // Cleanup subscription on unmount
     return () => {
