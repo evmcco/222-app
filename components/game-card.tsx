@@ -7,6 +7,7 @@ import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { GameCardTeamRow } from './game-card-team-row';
 
 
@@ -20,6 +21,10 @@ export function GameCard({ game, onPress }: GameCardProps) {
   const { isNotificationEnabled, toggleNotification } = useGameNotifications();
   const { enableGameNotification, disableGameNotification } = usePushNotifications();
   const reduceMotion = useReduceMotion();
+
+  // Press feedback: a subtle scale dip; skipped for reduce-motion users.
+  const pressScale = useSharedValue(1);
+  const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }));
 
   const getStatusDisplay = () => {
     if (game.status === 'scheduled') {
@@ -156,6 +161,12 @@ export function GameCard({ game, onPress }: GameCardProps) {
     <Pressable
       onPress={onPress}
       disabled={!onPress}
+      onPressIn={() => {
+        pressScale.value = withTiming(reduceMotion ? 1 : 0.98, { duration: 110 });
+      }}
+      onPressOut={() => {
+        pressScale.value = withTiming(1, { duration: 140 });
+      }}
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={
         onPress
@@ -166,6 +177,7 @@ export function GameCard({ game, onPress }: GameCardProps) {
         styles.card,
         isLive && styles.cardLive,
         pressed && styles.cardPressed,
+        pressStyle,
       ]}
     >
       <View style={styles.statusRow}>
@@ -256,7 +268,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
   },
   cardPressed: {
-    opacity: 0.85,
+    backgroundColor: colors.surfacePressed,
   },
   statusRow: {
     flexDirection: 'row',

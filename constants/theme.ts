@@ -14,6 +14,7 @@ export const colors = {
   background: '#0B0E14',
   surface: '#111826',
   surfaceElevated: '#1A2334',
+  surfacePressed: '#161F2E',
   border: '#232D40',
   borderSubtle: '#18202F',
   scrim: 'rgba(2, 6, 12, 0.66)',
