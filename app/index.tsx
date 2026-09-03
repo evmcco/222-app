@@ -2,8 +2,14 @@ import { GameCard } from '@/components/game-card';
 import { GameInfoDrawer } from '@/components/game-info-drawer';
 import { LiveDot } from '@/components/live-dot';
 import { SkeletonCard } from '@/components/skeleton-card';
+import { WeekSelector } from '@/components/week-selector';
 import { colors, radius, spacing, type } from '@/constants/theme';
 import { Game, useGames } from '@/hooks/games';
+import {
+  groupGamesByDate,
+  selectCurrentWeek,
+  useSeasonGames,
+} from '@/hooks/use-season-games';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -25,9 +31,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type GameSection = {
-  key: 'live' | 'scheduled' | 'final';
+type ListSection = {
+  key: string;
   title: string;
+  isLive: boolean;
+  isToday: boolean;
   data: Game[];
 };
 
@@ -70,17 +78,16 @@ function CardSeparator(): React.JSX.Element {
   return <View style={styles.cardSeparator} />;
 }
 
-function SectionHeader({ section }: { section: GameSection }) {
-  const isLive = section.key === 'live';
+function SectionHeader({ section }: { section: ListSection }) {
   return (
     <View style={styles.sectionHeader}>
-      {isLive && <LiveDot size={8} />}
+      {(section.isLive || section.isToday) && <LiveDot size={8} />}
       <Text
         style={[
           type.sectionHeader,
           styles.sectionTitle,
-          isLive && styles.sectionTitleLive,
-          section.key === 'final' && styles.sectionTitleFinal,
+          section.isLive && styles.sectionTitleLive,
+          section.isToday && !section.isLive && styles.sectionTitleToday,
         ]}
       >
         {section.title}
@@ -93,20 +100,53 @@ function SectionHeader({ section }: { section: GameSection }) {
 }
 
 export default function HomeScreen() {
-  const { games, loading, error, refetch } = useGames();
+  const { games: liveGames, loading, error, refetch } = useGames();
+  const {
+    games: seasonGames,
+    weeks,
+    seasonYear,
+    loading: seasonLoading,
+    error: seasonError,
+    refetch: refetchSeason,
+  } = useSeasonGames();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
-  const sections = useMemo<GameSection[]>(() => {
-    const grouped: GameSection[] = [
-      { key: 'live', title: 'Live', data: games.filter((g) => g.status === 'live') },
-      { key: 'scheduled', title: 'Upcoming', data: games.filter((g) => g.status === 'scheduled') },
-      { key: 'final', title: 'Final', data: games.filter((g) => g.status === 'final') },
-    ];
-    return grouped.filter((section) => section.data.length > 0);
-  }, [games]);
+  // The clock only needs to be stable within a render pass.
+  const now = useMemo(() => new Date(), []);
+  const currentWeek = useMemo(() => selectCurrentWeek(weeks, now), [now, weeks]);
+
+  // Pre-select the current week once the week index lands.
+  useEffect(() => {
+    if (selectedWeek === null && currentWeek !== null) setSelectedWeek(currentWeek);
+  }, [currentWeek, selectedWeek]);
+
+  // The current week streams live scores through the realtime-fed hook;
+  // other weeks render from the season snapshot.
+  const isCurrentWeekView = selectedWeek !== null && selectedWeek === currentWeek;
+
+  const weekGames = useMemo(() => {
+    if (selectedWeek === null) return [];
+    if (isCurrentWeekView) return liveGames;
+    return seasonGames.filter((g) => g.week_number === selectedWeek);
+  }, [isCurrentWeekView, liveGames, seasonGames, selectedWeek]);
+
+  // LIVE stays pinned at the top; the rest of the slate is date-divided.
+  const sections = useMemo<ListSection[]>(() => {
+    const live = isCurrentWeekView ? weekGames.filter((g) => g.status === 'live') : [];
+    const dated = isCurrentWeekView ? weekGames.filter((g) => g.status !== 'live') : weekGames;
+    const liveSections: ListSection[] =
+      live.length > 0
+        ? [{ key: 'live', title: 'Live', isLive: true, isToday: false, data: live }]
+        : [];
+    const dateSections: ListSection[] = groupGamesByDate(dated, now).map(
+      (section): ListSection => ({ ...section, isLive: false }),
+    );
+    return [...liveSections, ...dateSections];
+  }, [isCurrentWeekView, now, weekGames]);
 
   const todayLine = useMemo(
     () =>
@@ -123,7 +163,7 @@ export default function HomeScreen() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await refetch();
+      await Promise.all([refetch(), refetchSeason()]);
     } finally {
       setRefreshing(false);
     }
@@ -131,12 +171,17 @@ export default function HomeScreen() {
 
   const handleRetry = () => {
     void refetch();
+    void refetchSeason();
   };
 
-  const noData = games.length === 0;
-  const showSkeletons = noData && loading && !error;
-  const showError = noData && !!error && !loading;
-  const showEmpty = noData && !loading && !error;
+  const noData = weekGames.length === 0;
+  // Waiting on the active view's data source, or on the pre-selection.
+  const waiting =
+    (isCurrentWeekView ? loading : seasonLoading) || (selectedWeek === null && weeks.length > 0);
+  const failed = !!error || !!seasonError;
+  const showSkeletons = noData && waiting && !failed;
+  const showError = noData && !waiting && failed;
+  const showEmpty = noData && !waiting && !failed;
 
   return (
     <View
@@ -154,7 +199,16 @@ export default function HomeScreen() {
         <Text style={[type.dateLine, styles.dateLine]}>{todayLine}</Text>
       </View>
 
-      {showError && <ErrorState message={error} onRetry={handleRetry} />}
+      {weeks.length > 0 && (
+        <WeekSelector
+          weeks={weeks}
+          selected={selectedWeek}
+          currentWeek={currentWeek}
+          onSelect={setSelectedWeek}
+        />
+      )}
+
+      {showError && <ErrorState message={error ?? seasonError} onRetry={handleRetry} />}
 
       {showSkeletons && (
         <View style={styles.skeletons}>
@@ -177,7 +231,7 @@ export default function HomeScreen() {
           )}
           ItemSeparatorComponent={CardSeparator}
           renderSectionHeader={(info) => (
-            <SectionHeader section={info.section as GameSection} />
+            <SectionHeader section={info.section as ListSection} />
           )}
           stickySectionHeadersEnabled={false}
           contentContainerStyle={styles.listContent}
@@ -192,10 +246,11 @@ export default function HomeScreen() {
             />
           }
           ListFooterComponent={
-            games.length > 0 ? (
+            weekGames.length > 0 && selectedWeek !== null ? (
               <Text style={[type.sectionHeader, styles.footer]}>
-                Week {games[0].week_number} · {games[0].season_year} ·{' '}
-                {games.length} games
+                Week {selectedWeek}
+                {seasonYear !== null ? ` · ${seasonYear}` : ''} · {weekGames.length}{' '}
+                games
               </Text>
             ) : null
           }
@@ -289,8 +344,8 @@ const styles = StyleSheet.create({
   sectionTitleLive: {
     color: colors.live,
   },
-  sectionTitleFinal: {
-    color: colors.textTertiary,
+  sectionTitleToday: {
+    color: colors.textPrimary,
   },
   sectionCount: {
     color: colors.textTertiary,
