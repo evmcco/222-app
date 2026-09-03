@@ -16,6 +16,7 @@ export const colors = {
   surfaceElevated: '#1A2334',
   border: '#232D40',
   borderSubtle: '#18202F',
+  scrim: 'rgba(2, 6, 12, 0.66)',
 
   // Text
   textPrimary: '#F2F5FA',

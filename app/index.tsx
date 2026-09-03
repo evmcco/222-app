@@ -1,4 +1,5 @@
 import { GameCard } from '@/components/game-card';
+import { GameInfoDrawer } from '@/components/game-info-drawer';
 import { LiveDot } from '@/components/live-dot';
 import { SkeletonCard } from '@/components/skeleton-card';
 import { colors, radius, spacing, type } from '@/constants/theme';
@@ -64,6 +65,11 @@ function CardEntrance({
   return <Animated.View style={animatedStyle}>{children}</Animated.View>;
 }
 
+/** Vertical breathing room between game cards, from the spacing scale. */
+function CardSeparator(): React.JSX.Element {
+  return <View style={styles.cardSeparator} />;
+}
+
 function SectionHeader({ section }: { section: GameSection }) {
   const isLive = section.key === 'live';
   return (
@@ -91,6 +97,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
   const sections = useMemo<GameSection[]>(() => {
     const grouped: GameSection[] = [
@@ -165,9 +172,10 @@ export default function HomeScreen() {
           keyExtractor={(game) => game.id}
           renderItem={({ item, index }) => (
             <CardEntrance index={index} reduceMotion={reduceMotion}>
-              <GameCard game={item} />
+              <GameCard game={item} onPress={() => setSelectedGame(item)} />
             </CardEntrance>
           )}
+          ItemSeparatorComponent={CardSeparator}
           renderSectionHeader={(info) => (
             <SectionHeader section={info.section as GameSection} />
           )}
@@ -192,6 +200,10 @@ export default function HomeScreen() {
             ) : null
           }
         />
+      )}
+
+      {selectedGame && (
+        <GameInfoDrawer game={selectedGame} onClose={() => setSelectedGame(null)} />
       )}
     </View>
   );
@@ -287,6 +299,9 @@ const styles = StyleSheet.create({
     color: colors.textTertiary,
     textAlign: 'center',
     marginTop: spacing.lg,
+  },
+  cardSeparator: {
+    height: spacing.md,
   },
   skeletons: {
     paddingHorizontal: spacing.lg,

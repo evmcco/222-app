@@ -6,15 +6,17 @@ import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { GameCardTeamRow } from './game-card-team-row';
 
 
 interface GameCardProps {
   game: Game;
+  /** Opens the game-info drawer; omit for a non-interactive card. */
+  onPress?: () => void;
 }
 
-export function GameCard({ game }: GameCardProps) {
+export function GameCard({ game, onPress }: GameCardProps) {
   const { isNotificationEnabled, toggleNotification } = useGameNotifications();
   const { enableGameNotification, disableGameNotification } = usePushNotifications();
   const reduceMotion = useReduceMotion();
@@ -151,7 +153,21 @@ export function GameCard({ game }: GameCardProps) {
         : styles.oddsNeutral;
 
   return (
-    <View style={[styles.card, isLive && styles.cardLive]}>
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={
+        onPress
+          ? `Show game details for ${game.away_team.abbreviation} at ${game.home_team.abbreviation}`
+          : undefined
+      }
+      style={({ pressed }) => [
+        styles.card,
+        isLive && styles.cardLive,
+        pressed && styles.cardPressed,
+      ]}
+    >
       <View style={styles.statusRow}>
         <View style={styles.bellSlot}>
           {showNotificationBell && (
@@ -173,9 +189,11 @@ export function GameCard({ game }: GameCardProps) {
             </TouchableOpacity>
           )}
         </View>
-        <View style={[styles.chip, chipTone]}>
-          {isLive && <LiveDot size={7} animate={!reduceMotion} />}
-          <Text style={[type.chip, chipTextTone]}>{getStatusDisplay()}</Text>
+        <View style={styles.chipSlot}>
+          <View style={[styles.chip, chipTone]}>
+            {isLive && <LiveDot size={7} animate={!reduceMotion} />}
+            <Text style={[type.chip, chipTextTone]}>{getStatusDisplay()}</Text>
+          </View>
         </View>
         <Text style={[type.small, styles.dateLabel]}>{game.date_display}</Text>
       </View>
@@ -216,7 +234,7 @@ export function GameCard({ game }: GameCardProps) {
           )}
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
@@ -237,6 +255,9 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 0 },
   },
+  cardPressed: {
+    opacity: 0.85,
+  },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -246,16 +267,17 @@ const styles = StyleSheet.create({
     minWidth: 24,
     alignItems: 'flex-start',
   },
-  chip: {
+  chipSlot: {
     flex: 1,
+    alignItems: 'center',
+  },
+  chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
+    gap: spacing.xs,
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 3,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   chipScheduled: {
     backgroundColor: colors.surfaceElevated,
