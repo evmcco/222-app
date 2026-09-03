@@ -1,11 +1,12 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { LiveDot } from '@/components/live-dot';
+import { colors, radius, spacing, type } from '@/constants/theme';
 import { Game } from '@/hooks/games';
 import { useGameNotifications } from '@/hooks/use-game-notifications';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { GameCardTeamRow } from './game-card-team-row';
 
 
@@ -15,7 +16,8 @@ interface GameCardProps {
 
 export function GameCard({ game }: GameCardProps) {
   const { isNotificationEnabled, toggleNotification } = useGameNotifications();
-  const { enableGameNotification, disableGameNotification, loading } = usePushNotifications();
+  const { enableGameNotification, disableGameNotification } = usePushNotifications();
+  const reduceMotion = useReduceMotion();
 
   const getStatusDisplay = () => {
     if (game.status === 'scheduled') {
@@ -120,32 +122,64 @@ export function GameCard({ game }: GameCardProps) {
   const spreadInfo = getSpreadInfo();
   const overUnderInfo = getOverUnderInfo();
 
+  const isLive = game.status === 'live';
+  const isFinal = game.status === 'final';
+  const isScheduled = game.status === 'scheduled';
+  const notificationEnabled = isNotificationEnabled(game.id);
+
+  // Scores take the stage once the game starts; only decided finals dim the loser.
+  const awayScoreMuted = isScheduled || (isFinal && !awayWon && homeWon);
+  const homeScoreMuted = isScheduled || (isFinal && !homeWon && awayWon);
+
+  const chipTone = isLive ? styles.chipLive : isFinal ? styles.chipFinal : styles.chipScheduled;
+  const chipTextTone = isLive
+    ? styles.chipTextLive
+    : isFinal
+      ? styles.chipTextFinal
+      : styles.chipTextScheduled;
+
+  const spreadTone = isScheduled
+    ? styles.oddsNeutral
+    : isLive
+      ? styles.oddsLive
+      : styles.oddsFinal;
+  const totalTone =
+    !isScheduled && overUnderInfo.isOver
+      ? styles.oddsLive
+      : !isScheduled && !overUnderInfo.isOver
+        ? styles.oddsUnder
+        : styles.oddsNeutral;
+
   return (
-    <ThemedView style={[styles.container, styles.darkCard, { borderColor: '#333333' }]}>
-      <View style={styles.statusContainer}>
-        <View style={styles.statusLeftContainer}>
+    <View style={[styles.card, isLive && styles.cardLive]}>
+      <View style={styles.statusRow}>
+        <View style={styles.bellSlot}>
           {showNotificationBell && (
             <TouchableOpacity
               onPress={handleBellPress}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole="button"
+              accessibilityLabel={
+                notificationEnabled
+                  ? `Disable notifications for ${game.away_team.abbreviation} at ${game.home_team.abbreviation}`
+                  : `Enable notifications for ${game.away_team.abbreviation} at ${game.home_team.abbreviation}`
+              }
             >
               <Ionicons
-                name={isNotificationEnabled(game.id) ? 'notifications' : 'notifications-outline'}
-                size={18}
-                color={isNotificationEnabled(game.id) ? '#fbbf24' : '#ffffff'}
+                name={notificationEnabled ? 'notifications' : 'notifications-outline'}
+                size={20}
+                color={notificationEnabled ? colors.live : colors.textSecondary}
               />
             </TouchableOpacity>
           )}
         </View>
-        <View style={styles.statusCenterContainer}>
-          <ThemedText style={[styles.statusText, styles.lightText]}>
-            {game.date_display}
-          </ThemedText>
-          <ThemedText style={[styles.statusText, styles.lightText]}>
-            {getStatusDisplay()}
-          </ThemedText>
+        <View style={[styles.chip, chipTone]}>
+          {isLive && <LiveDot size={7} animate={!reduceMotion} />}
+          <Text style={[type.chip, chipTextTone]}>{getStatusDisplay()}</Text>
         </View>
+        <Text style={[type.small, styles.dateLabel]}>{game.date_display}</Text>
       </View>
+
       <View style={styles.teamsContainer}>
         {/* Away Team */}
         <GameCardTeamRow
@@ -154,6 +188,7 @@ export function GameCard({ game }: GameCardProps) {
           score={game.away_team_score}
           logo={game.away_team.logo}
           ranking={game.away_team_ranking}
+          muted={awayScoreMuted}
         />
         {/* Home Team */}
         <GameCardTeamRow
@@ -162,95 +197,112 @@ export function GameCard({ game }: GameCardProps) {
           score={game.home_team_score}
           logo={game.home_team.logo}
           ranking={game.home_team_ranking}
+          muted={homeScoreMuted}
         />
       </View>
 
       {/* Betting Information */}
       {(game.spread !== undefined || game.total_points !== undefined) && (
-        <View style={[styles.bettingInfo, { borderTopColor: '#333333' }]}>
+        <View style={styles.bettingInfo}>
           {game.spread !== undefined && spreadInfo.spreadText && (
-            <ThemedText style={[styles.bettingText, game.status === 'scheduled' ? styles.lightText : game.status === 'live' ? styles.greenText : styles.yellowText]}>
+            <Text style={[type.odds, spreadTone]}>
               {spreadInfo.spreadText}
-            </ThemedText>
+            </Text>
           )}
           {overUnderInfo.status && (
-            <ThemedText style={[
-              styles.bettingText,
-              game.status !== 'scheduled' && overUnderInfo.isOver ? styles.greenText : game.status !== 'scheduled' && !overUnderInfo.isOver ? styles.redText : styles.lightText
-            ]}>
+            <Text style={[type.odds, totalTone]}>
               {overUnderInfo.status}
-            </ThemedText>
+            </Text>
           )}
         </View>
       )}
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  card: {
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginBottom: 12,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
-  darkCard: {
-    backgroundColor: '#2a2a2a',
+  cardLive: {
+    borderColor: colors.live,
+    borderWidth: 1.5,
+    shadowColor: colors.live,
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 0 },
   },
-  statusContainer: {
+  statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    // justifyContent: 'space-between',
-    marginBottom: 6,
-    position: 'relative',
-    // borderColor: 'white',
-    // borderWidth: 1,
-    // borderStyle: 'solid',
+    marginBottom: spacing.sm,
   },
-  statusLeftContainer: {
-    marginRight: 'auto',
+  bellSlot: {
+    minWidth: 24,
+    alignItems: 'flex-start',
   },
-  statusRightContainer: {
-    marginLeft: 'auto',
-  },
-  statusCenterContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
+  chip: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
+    alignSelf: 'flex-start',
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: 3,
   },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '500',
+  chipScheduled: {
+    backgroundColor: colors.surfaceElevated,
   },
-  lightText: {
-    color: '#ffffff',
+  chipLive: {
+    backgroundColor: colors.liveDim,
   },
-  greenText: {
-    color: '#22c55e',
+  chipFinal: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
-  redText: {
-    color: '#ef4444'
+  chipTextScheduled: {
+    color: colors.textSecondary,
   },
-  yellowText: {
-    color: '#c39a33'
+  chipTextLive: {
+    color: colors.liveBright,
+  },
+  chipTextFinal: {
+    color: colors.textTertiary,
+  },
+  dateLabel: {
+    minWidth: 24,
+    textAlign: 'right',
+    color: colors.textTertiary,
   },
   teamsContainer: {
-    gap: 6,
+    gap: spacing.xs,
   },
   bettingInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 6,
-    marginTop: 6,
+    paddingTop: spacing.sm,
+    marginTop: spacing.xs,
     borderTopWidth: 1,
+    borderTopColor: colors.borderSubtle,
   },
-  bettingText: {
-    fontSize: 12,
-    fontWeight: '500',
+  oddsNeutral: {
+    color: colors.textSecondary,
+  },
+  oddsLive: {
+    color: colors.live,
+  },
+  oddsFinal: {
+    color: colors.odds,
+  },
+  oddsUnder: {
+    color: colors.danger,
   },
 });
