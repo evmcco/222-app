@@ -1,52 +1,51 @@
-import { ThemedText } from '@/components/themed-text';
 import { AnimatedScore } from '@/components/animated-score';
+import { colors, radius, spacing, type } from '@/constants/theme';
 import { Image } from 'expo-image';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 type GameCardTeamRowProps = {
-  teamWon: boolean,
-  abbr: string,
-  score: number,
-  logo?: string,
-  ranking?: number | null,
-}
+  teamWon: boolean;
+  abbr: string;
+  score: number;
+  logo?: string;
+  ranking?: number | null;
+  muted?: boolean;
+};
 
-export const GameCardTeamRow = ({ teamWon, abbr, score, logo, ranking }: GameCardTeamRowProps) => {
+export const GameCardTeamRow = ({
+  teamWon,
+  abbr,
+  score,
+  logo,
+  ranking,
+  muted = false,
+}: GameCardTeamRowProps) => {
   return (
     <View style={styles.teamContainer}>
       <View style={styles.teamInfo}>
         <View style={styles.teamNameContainer}>
           {logo && (
-            <Image
-              source={{ uri: logo }}
-              style={styles.logo}
-              contentFit="contain"
-            />
+            <Image source={{ uri: logo }} style={styles.logo} contentFit="contain" />
           )}
           {ranking && ranking <= 25 && (
-            <ThemedText style={[styles.ranking, styles.lightText]}>
-              {ranking}
-            </ThemedText>
+            <View style={styles.ranking}>
+              <Text style={[type.chip, styles.rankingText]}>{ranking}</Text>
+            </View>
           )}
-          <ThemedText style={[styles.teamAbbr, styles.lightText]}>
-            {abbr}
-          </ThemedText>
+          <Text style={[type.teamAbbr, styles.teamAbbr]}>{abbr}</Text>
         </View>
         <View style={styles.scoreContainer}>
-          <AnimatedScore 
-            score={score} 
-            teamWon={teamWon}
-          />
+          <AnimatedScore score={score} teamWon={teamWon} muted={muted} />
         </View>
       </View>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   teamContainer: {
-    paddingVertical: 4,
+    paddingVertical: spacing.xs,
   },
   teamInfo: {
     flexDirection: 'row',
@@ -57,49 +56,31 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   logo: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
   },
   ranking: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    backgroundColor: '#666666',
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: radius.sm,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
-    minWidth: 24,
-    textAlign: 'center',
+    minWidth: 26,
+    alignItems: 'center',
+  },
+  rankingText: {
+    color: colors.textSecondary,
+    textTransform: 'none',
   },
   teamAbbr: {
-    fontSize: 18,
-    fontWeight: 500,
-  },
-  lightText: {
-    color: '#ffffff',
+    color: colors.textPrimary,
   },
   scoreContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    minWidth: 50,
+    minWidth: 56,
     justifyContent: 'flex-end',
-  },
-  score: {
-    fontSize: 18,
-    fontWeight: 500,
-    textAlign: 'right',
-    padding: 2,
-    minWidth: 25,
-  },
-  coveringCheck: {
-    fontSize: 18,
-    color: '#22c55e',
-    fontWeight: 'bold',
-    marginRight: 6,
-  },
-  winnerText: {
-    fontWeight: 800,
   },
 });

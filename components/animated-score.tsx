@@ -1,6 +1,6 @@
-import { ThemedText } from '@/components/themed-text';
+import { colors, type } from '@/constants/theme';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View, type StyleProp, type TextStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -12,10 +12,11 @@ import Animated, {
 type AnimatedScoreProps = {
   score: number;
   teamWon: boolean;
-  style?: any;
+  muted?: boolean;
+  style?: StyleProp<TextStyle>;
 };
 
-export const AnimatedScore = ({ score, teamWon, style }: AnimatedScoreProps) => {
+export const AnimatedScore = ({ score, teamWon, muted = false, style }: AnimatedScoreProps) => {
   const [previousScore, setPreviousScore] = useState(score);
   const [displayScore, setDisplayScore] = useState(score);
   const scale = useSharedValue(1);
@@ -93,12 +94,18 @@ export const AnimatedScore = ({ score, teamWon, style }: AnimatedScoreProps) => 
   return (
     <View style={styles.container}>
       <Animated.View style={[arrowStyle, styles.arrowContainer]}>
-        <ThemedText style={styles.arrow}>↑</ThemedText>
+        <Text style={styles.arrow}>↑</Text>
       </Animated.View>
       <Animated.View style={[animatedStyle]}>
-        <ThemedText style={[styles.score, styles.lightText, teamWon && styles.winnerText, style]}>
+        <Text
+          style={[
+            type.heroScore,
+            muted ? styles.scoreMuted : styles.scoreLeading,
+            style,
+          ]}
+        >
           {displayScore}
-        </ThemedText>
+        </Text>
       </Animated.View>
     </View>
   );
@@ -114,21 +121,14 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   arrow: {
-    fontSize: 16,
-    color: '#22c55e', // Green color
+    fontSize: 18,
+    color: colors.live,
     fontWeight: 'bold',
   },
-  score: {
-    fontSize: 18,
-    fontWeight: '500',
-    textAlign: 'right',
-    padding: 2,
-    minWidth: 25,
+  scoreLeading: {
+    color: colors.textPrimary,
   },
-  lightText: {
-    color: '#ffffff',
-  },
-  winnerText: {
-    fontWeight: '800',
+  scoreMuted: {
+    color: colors.textSecondary,
   },
 });
