@@ -1,6 +1,8 @@
 import { LiveDot } from '@/components/live-dot';
+import { GameNarrative } from '@/components/game-narrative';
 import { colors, radius, spacing, type } from '@/constants/theme';
 import { Game } from '@/hooks/games';
+import type { GameNarrative as Narrative } from '@/hooks/narratives';
 import { useGameNotifications } from '@/hooks/use-game-notifications';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
@@ -12,11 +14,12 @@ import { GameCardTeamRow } from './game-card-team-row';
 
 interface GameCardProps {
   game: Game;
+  narrative?: Narrative;
   /** Opens the game-info drawer; omit for a non-interactive card. */
   onPress?: () => void;
 }
 
-export function GameCard({ game, onPress }: GameCardProps) {
+export function GameCard({ game, narrative, onPress }: GameCardProps) {
   const { isNotificationEnabled, toggleNotification } = useGameNotifications();
   const { enableGameNotification, disableGameNotification } = usePushNotifications();
   const reduceMotion = useReduceMotion();
@@ -128,6 +131,7 @@ export function GameCard({ game, onPress }: GameCardProps) {
   const isFinal = game.status === 'final';
   const isScheduled = game.status === 'scheduled';
   const notificationEnabled = isNotificationEnabled(game.id);
+  const showBettingInfo = game.spread !== undefined || game.total_points !== undefined;
 
   // Scores take the stage once the game starts; only decided finals dim the loser.
   const awayScoreMuted = isScheduled || (isFinal && !awayWon && homeWon);
@@ -219,20 +223,30 @@ export function GameCard({ game, onPress }: GameCardProps) {
         />
       </View>
 
+      {narrative && (
+        <>
+          <View style={styles.divider} />
+          <GameNarrative narrative={narrative} compact />
+        </>
+      )}
+
       {/* Betting Information */}
-      {(game.spread !== undefined || game.total_points !== undefined) && (
-        <View style={styles.bettingInfo}>
-          {game.spread !== undefined && spreadInfo.spreadText && (
-            <Text style={[type.odds, spreadTone]}>
-              {spreadInfo.spreadText}
-            </Text>
-          )}
-          {overUnderInfo.status && (
-            <Text style={[type.odds, totalTone]}>
-              {overUnderInfo.status}
-            </Text>
-          )}
-        </View>
+      {showBettingInfo && (
+        <>
+          <View style={styles.divider} />
+          <View style={styles.bettingInfo}>
+            {game.spread !== undefined && spreadInfo.spreadText && (
+              <Text style={[type.odds, spreadTone]}>
+                {spreadInfo.spreadText}
+              </Text>
+            )}
+            {overUnderInfo.status && (
+              <Text style={[type.odds, totalTone]}>
+                {overUnderInfo.status}
+              </Text>
+            )}
+          </View>
+        </>
       )}
     </Pressable>
   );
@@ -307,13 +321,14 @@ const styles = StyleSheet.create({
   teamsContainer: {
     gap: spacing.xs,
   },
+  divider: {
+    height: 1,
+    backgroundColor: colors.borderSubtle,
+    marginVertical: spacing.sm,
+  },
   bettingInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: spacing.sm,
-    marginTop: spacing.xs,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderSubtle,
   },
   oddsNeutral: {
     color: colors.textSecondary,

@@ -4,6 +4,7 @@ import { LiveDot } from '@/components/live-dot';
 import { SkeletonCard } from '@/components/skeleton-card';
 import { colors, radius, spacing, type } from '@/constants/theme';
 import { Game, useGames } from '@/hooks/games';
+import { useNarratives } from '@/hooks/narratives';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -97,7 +98,13 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
+
+  const gameIds = useMemo(() => games.map((game) => game.id).sort(), [games]);
+  const { narrativesByGameId, refetch: refetchNarratives } = useNarratives(gameIds);
+  const selectedGame = selectedGameId
+    ? games.find((game) => game.id === selectedGameId) ?? null
+    : null;
 
   const sections = useMemo<GameSection[]>(() => {
     const grouped: GameSection[] = [
@@ -123,7 +130,7 @@ export default function HomeScreen() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await refetch();
+      await Promise.allSettled([refetch(), refetchNarratives()]);
     } finally {
       setRefreshing(false);
     }
@@ -172,7 +179,11 @@ export default function HomeScreen() {
           keyExtractor={(game) => game.id}
           renderItem={({ item, index }) => (
             <CardEntrance index={index} reduceMotion={reduceMotion}>
-              <GameCard game={item} onPress={() => setSelectedGame(item)} />
+              <GameCard
+                game={item}
+                narrative={narrativesByGameId.get(item.id)}
+                onPress={() => setSelectedGameId(item.id)}
+              />
             </CardEntrance>
           )}
           ItemSeparatorComponent={CardSeparator}
@@ -203,7 +214,11 @@ export default function HomeScreen() {
       )}
 
       {selectedGame && (
-        <GameInfoDrawer game={selectedGame} onClose={() => setSelectedGame(null)} />
+        <GameInfoDrawer
+          game={selectedGame}
+          narrative={narrativesByGameId.get(selectedGame.id)}
+          onClose={() => setSelectedGameId(null)}
+        />
       )}
     </View>
   );

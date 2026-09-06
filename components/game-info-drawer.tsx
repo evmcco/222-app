@@ -1,5 +1,7 @@
 import { colors, radius, spacing, type } from '@/constants/theme';
+import { GameNarrative } from '@/components/game-narrative';
 import type { Game } from '@/hooks/games';
+import type { GameNarrative as Narrative } from '@/hooks/narratives';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -29,6 +31,7 @@ const DRAWER_HEIGHT_RATIO = 0.55;
 
 interface GameInfoDrawerProps {
   game: Game;
+  narrative?: Narrative;
   onClose: () => void;
 }
 
@@ -140,7 +143,7 @@ function InfoRowView({ label, value }: InfoRow) {
   );
 }
 
-export function GameInfoDrawer({ game, onClose }: GameInfoDrawerProps) {
+export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps) {
   const reduceMotion = useReduceMotion();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -267,11 +270,12 @@ export function GameInfoDrawer({ game, onClose }: GameInfoDrawerProps) {
             />
           </View>
 
-          <View style={styles.divider} />
-          <Text style={[type.sectionHeader, styles.sectionTitle]}>Game Info</Text>
-          {infoRows.map((row) => (
-            <InfoRowView key={row.label} label={row.label} value={row.value} />
-          ))}
+          {narrative && (
+            <>
+              <View style={styles.divider} />
+              <GameNarrative narrative={narrative} />
+            </>
+          )}
 
           {bettingRows.length > 0 && (
             <>
@@ -282,6 +286,12 @@ export function GameInfoDrawer({ game, onClose }: GameInfoDrawerProps) {
               ))}
             </>
           )}
+
+          <View style={styles.divider} />
+          <Text style={[type.sectionHeader, styles.sectionTitle]}>Game Info</Text>
+          {infoRows.map((row) => (
+            <InfoRowView key={row.label} label={row.label} value={row.value} />
+          ))}
         </ScrollView>
       </Animated.View>
     </View>
