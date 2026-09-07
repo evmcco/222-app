@@ -1,3 +1,4 @@
+import { compareGames } from '@/lib/game-sort';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
@@ -34,6 +35,7 @@ export interface GameRow {
   game_date: string;
   created_at: string;
   updated_at: string;
+  completed_at?: string | null;
 }
 
 // Complete game object with team data (what we use in the UI)
@@ -68,7 +70,7 @@ async function fetchGames(): Promise<Game[]> {
 
   if (USE_DUMMY_DATA) {
     console.log("Using dummy data for App Store screenshots");
-    return dummyGames;
+    return [...dummyGames].sort(compareGames);
   }
 
   const { start, end } = getCurrentWeekRange();
@@ -87,13 +89,7 @@ async function fetchGames(): Promise<Game[]> {
 
   if (fetchError) throw fetchError;
 
-  const sortedGames = (data || []).sort((a, b) => {
-    if (a.status === 'final' && b.status !== 'final') return 1;
-    if (a.status !== 'final' && b.status === 'final') return -1;
-    return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
-  });
-
-  return sortedGames;
+  return (data || []).sort(compareGames);
 }
 
 const createGamesSubscription = (queryClient: any, retryCount = 0) => {
@@ -106,9 +102,7 @@ const createGamesSubscription = (queryClient: any, retryCount = 0) => {
       {
         event: '*' as const, // Listen to all events (INSERT, UPDATE, DELETE)
         schema: 'public',
-        table: 'games',
-        filter: 'status=eq.live' // Only listen to live/ongoing games
-        // filter: 'id=eq.401761634' // For debugging
+        table: 'games', // Include transitions to final so completed games move immediately.
       },
       (payload: GameRealtimePayload) => {
         console.log('Real-time update received:', payload.commit_timestamp);
@@ -149,7 +143,7 @@ const createGamesSubscription = (queryClient: any, retryCount = 0) => {
                 
                 // Check each field in newRecord for changes
                 Object.keys(newRecord).forEach(key => {
-                  const oldValue = (oldRecord as any)[key];
+                  const oldValue = (oldRecord as any)?.[key];
                   const newValue = (newRecord as any)[key];
                   
                   if (oldValue !== newValue) {
@@ -178,11 +172,7 @@ const createGamesSubscription = (queryClient: any, retryCount = 0) => {
                       away_team: oldGame.away_team
                     } as Game
                   : oldGame
-              ).sort((a, b) => {
-                if (a.status === 'final' && b.status !== 'final') return 1;
-                if (a.status !== 'final' && b.status === 'final') return -1;
-                return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
-              });
+              ).sort(compareGames);
               
             case 'DELETE':
               console.log("DELETE EVENT")

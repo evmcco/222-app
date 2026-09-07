@@ -3,12 +3,9 @@ import { GameNarrative } from '@/components/game-narrative';
 import { colors, radius, spacing, type } from '@/constants/theme';
 import { Game } from '@/hooks/games';
 import type { GameNarrative as Narrative } from '@/hooks/narratives';
-import { useGameNotifications } from '@/hooks/use-game-notifications';
-import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { GameCardTeamRow } from './game-card-team-row';
 
 
@@ -20,8 +17,6 @@ interface GameCardProps {
 }
 
 export function GameCard({ game, narrative, onPress }: GameCardProps) {
-  const { isNotificationEnabled, toggleNotification } = useGameNotifications();
-  const { enableGameNotification, disableGameNotification } = usePushNotifications();
   const reduceMotion = useReduceMotion();
 
   const getStatusDisplay = () => {
@@ -39,30 +34,12 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
     }
   };
 
-  const handleBellPress = async () => {
-    if (isNotificationEnabled(game.id)) {
-      // Disable notification
-      const success = await disableGameNotification(game.id);
-      if (success) {
-        toggleNotification(game.id);
-      }
-    } else {
-      // Enable notification
-      const success = await enableGameNotification(game.id);
-      if (success) {
-        toggleNotification(game.id);
-      }
-    }
-  };
-
-  const showNotificationBell = game.status !== 'final';
-
   const homeWon = game.home_team_score > game.away_team_score;
   const awayWon = game.away_team_score > game.home_team_score;
 
   // Calculate spread coverage
   const getSpreadInfo = () => {
-    if (game.spread === undefined) {
+    if (game.spread == null) {
       return { homeIsCovering: false, awayIsCovering: false, spreadText: '', favoredTeam: '' };
     }
 
@@ -89,7 +66,7 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
     const coveringTeam = homeIsCovering ? game.home_team.abbreviation : awayIsCovering ? game.away_team.abbreviation : 'PUSH'
     const spreadText = coveringTeam === 'PUSH' ? 'PUSH'
       : game.status === 'scheduled' ? `${favoredTeam} -${spreadValue}`
-        : `${coveringTeam} ${(favoredTeam === coveringTeam ? '-' : '+')}${spreadValue}`;
+        : `${coveringTeam}${game.status === 'live' ? ' COVERING' : ''} ${(favoredTeam === coveringTeam ? '-' : '+')}${spreadValue}`;
 
 
     if (game.status === 'scheduled') {
@@ -105,7 +82,7 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
 
   // Calculate over/under status
   const getOverUnderInfo = () => {
-    if (game.total_points === undefined) return { status: '', isOver: false };
+    if (game.total_points == null) return { status: '', isOver: false };
 
     const currentTotal = game.home_team_score + game.away_team_score;
 
@@ -118,7 +95,9 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
       };
     } else {
       return {
-        status: currentTotal > game.total_points ? `O ${game.total_points} | TOT ${currentTotal}` : `U ${game.total_points} | TOT ${currentTotal}`,
+        status: currentTotal === game.total_points
+          ? `PUSH ${game.total_points} | TOT ${currentTotal}`
+          : `${currentTotal > game.total_points ? 'O' : 'U'} ${game.total_points} | TOT ${currentTotal}`,
         isOver: currentTotal > game.total_points
       };
     }
@@ -130,8 +109,7 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
   const isLive = game.status === 'live';
   const isFinal = game.status === 'final';
   const isScheduled = game.status === 'scheduled';
-  const notificationEnabled = isNotificationEnabled(game.id);
-  const showBettingInfo = game.spread !== undefined || game.total_points !== undefined;
+  const showBettingInfo = game.spread != null || game.total_points != null;
 
   // Scores take the stage once the game starts; only decided finals dim the loser.
   const awayScoreMuted = isScheduled || (isFinal && !awayWon && homeWon);
@@ -144,17 +122,13 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
       ? styles.chipTextFinal
       : styles.chipTextScheduled;
 
-  const spreadTone = isScheduled
-    ? styles.oddsNeutral
-    : isLive
-      ? styles.oddsLive
-      : styles.oddsFinal;
-  const totalTone =
-    !isScheduled && overUnderInfo.isOver
-      ? styles.oddsLive
-      : !isScheduled && !overUnderInfo.isOver
-        ? styles.oddsUnder
-        : styles.oddsNeutral;
+  const spreadTone = isFinal ? styles.oddsFinal : styles.oddsNeutral;
+  const isLateGame = isFinal || (isLive && (
+    game.quarter === '4th' || /OT$/i.test(game.quarter ?? '')
+  ));
+  const currentTotal = game.home_team_score + game.away_team_score;
+  // A total exactly on the line is a push, so neither direction applies.
+  const showTotalArrow = isLateGame && game.total_points != null && currentTotal !== game.total_points;
 
   return (
     <Pressable
@@ -173,33 +147,12 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
       ]}
     >
       <View style={styles.statusRow}>
-        <View style={styles.bellSlot}>
-          {showNotificationBell && (
-            <TouchableOpacity
-              onPress={handleBellPress}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              accessibilityRole="button"
-              accessibilityLabel={
-                notificationEnabled
-                  ? `Disable notifications for ${game.away_team.abbreviation} at ${game.home_team.abbreviation}`
-                  : `Enable notifications for ${game.away_team.abbreviation} at ${game.home_team.abbreviation}`
-              }
-            >
-              <Ionicons
-                name={notificationEnabled ? 'notifications' : 'notifications-outline'}
-                size={20}
-                color={notificationEnabled ? colors.live : colors.textSecondary}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
         <View style={styles.chipSlot}>
           <View style={[styles.chip, chipTone]}>
             {isLive && <LiveDot size={7} animate={!reduceMotion} />}
             <Text style={[type.chip, chipTextTone]}>{getStatusDisplay()}</Text>
           </View>
         </View>
-        <Text style={[type.small, styles.dateLabel]}>{game.date_display}</Text>
       </View>
 
       <View style={styles.teamsContainer}>
@@ -235,14 +188,22 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
         <>
           <View style={styles.divider} />
           <View style={styles.bettingInfo}>
-            {game.spread !== undefined && spreadInfo.spreadText && (
+            {game.spread != null && spreadInfo.spreadText && (
               <Text style={[type.odds, spreadTone]}>
                 {spreadInfo.spreadText}
               </Text>
             )}
             {overUnderInfo.status && (
-              <Text style={[type.odds, totalTone]}>
+              <Text style={[type.odds, styles.oddsNeutral]}>
                 {overUnderInfo.status}
+                {showTotalArrow && (
+                  <Text
+                    style={overUnderInfo.isOver ? styles.oddsLive : styles.oddsUnder}
+                    accessibilityLabel={overUnderInfo.isOver ? 'Over' : 'Under'}
+                  >
+                    {overUnderInfo.isOver ? ' ↑' : ' ↓'}
+                  </Text>
+                )}
               </Text>
             )}
           </View>
@@ -277,10 +238,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
-  bellSlot: {
-    minWidth: 24,
-    alignItems: 'flex-start',
-  },
   chipSlot: {
     flex: 1,
     alignItems: 'center',
@@ -313,11 +270,6 @@ const styles = StyleSheet.create({
   chipTextFinal: {
     color: colors.textTertiary,
   },
-  dateLabel: {
-    minWidth: 24,
-    textAlign: 'right',
-    color: colors.textTertiary,
-  },
   teamsContainer: {
     gap: spacing.xs,
   },
@@ -329,6 +281,9 @@ const styles = StyleSheet.create({
   bettingInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    columnGap: spacing.sm,
+    rowGap: spacing.xs,
   },
   oddsNeutral: {
     color: colors.textSecondary,

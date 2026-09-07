@@ -1,3 +1,4 @@
+import { useGameDetails, type GameDetails } from '@/hooks/game-details';
 import { colors, radius, spacing, type } from '@/constants/theme';
 import { GameNarrative } from '@/components/game-narrative';
 import type { Game } from '@/hooks/games';
@@ -66,11 +67,12 @@ function formatStatusLine(game: Game): string {
   return 'Upcoming';
 }
 
-function getGameInfoRows(game: Game): InfoRow[] {
+function getGameInfoRows(game: Game, details: GameDetails | undefined, loading: boolean): InfoRow[] {
   const kickoff = [game.date_display, game.start_time].filter(Boolean).join(' · ');
   return [
     { label: 'Kickoff', value: kickoff },
-    { label: 'Status', value: formatStatusLine(game) },
+    { label: 'Location', value: details?.location || (loading ? 'Loading…' : 'Unavailable') },
+    { label: 'TV', value: details?.channels.join(', ') || (loading ? 'Loading…' : 'Unavailable') },
     { label: 'Week', value: `Week ${game.week_number} · ${game.season_year} Season` },
   ];
 }
@@ -189,7 +191,8 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
     opacity: progress.value,
   }));
 
-  const infoRows = getGameInfoRows(game);
+  const details = useGameDetails(game.id);
+  const infoRows = getGameInfoRows(game, details.data, details.isPending);
   const bettingRows = getBettingRows(game);
   const isScheduled = game.status === 'scheduled';
   const statusLine = formatStatusLine(game);
@@ -422,6 +425,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: spacing.xs,
+    gap: spacing.lg,
   },
   infoLabel: {
     color: colors.textTertiary,

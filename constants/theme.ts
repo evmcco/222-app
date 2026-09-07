@@ -57,8 +57,8 @@ export const radius = {
 } as const;
 
 const heroScore: TextStyle = {
-  fontSize: 40,
-  lineHeight: 44,
+  fontSize: 28,
+  lineHeight: 34,
   fontWeight: '900',
   fontVariant: ['tabular-nums'],
   letterSpacing: -0.5,
