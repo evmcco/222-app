@@ -57,6 +57,7 @@ function formatMoneyline(moneyline: number | null): string | null {
 
 /** Broadcast-style state line, mirroring the card's live-display rules. */
 function formatStatusLine(game: Game): string {
+  if (game.interruption) return game.interruption;
   if (game.status === 'live') {
     if (game.current_game_time === '0:00') {
       return game.quarter === '2nd' ? 'Halftime' : `End of ${game.quarter ?? 'quarter'}`;
@@ -196,6 +197,7 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
   const bettingRows = getBettingRows(game);
   const isScheduled = game.status === 'scheduled';
   const statusLine = formatStatusLine(game);
+  const isLive = game.status === 'live' && !game.interruption;
 
   return (
     <View style={styles.overlay} pointerEvents="box-none">
@@ -219,15 +221,16 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
             <View
               style={[
                 styles.statusChip,
-                game.status === 'live' && styles.statusChipLive,
+                !!game.interruption && styles.statusChipDelayed,
+                isLive && styles.statusChipLive,
                 game.status === 'final' && styles.statusChipFinal,
               ]}
             >
               <Ionicons
-                name={game.status === 'live' ? 'radio-outline' : game.status === 'final' ? 'checkmark-circle-outline' : 'time-outline'}
+                name={game.interruption ? 'pause-circle-outline' : isLive ? 'radio-outline' : game.status === 'final' ? 'checkmark-circle-outline' : 'time-outline'}
                 size={14}
                 color={
-                  game.status === 'live'
+                  game.interruption ? colors.odds : isLive
                     ? colors.liveBright
                     : game.status === 'final'
                       ? colors.textTertiary
@@ -237,7 +240,7 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
               <Text
                 style={[
                   type.chip,
-                  game.status === 'live'
+                  game.interruption ? styles.statusTextDelayed : isLive
                     ? styles.statusTextLive
                     : game.status === 'final'
                       ? styles.statusTextFinal
@@ -345,6 +348,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     backgroundColor: colors.surface,
   },
+  statusChipDelayed: { backgroundColor: colors.oddsDim },
+  statusTextDelayed: { color: colors.odds },
   statusChipLive: {
     backgroundColor: colors.liveDim,
   },

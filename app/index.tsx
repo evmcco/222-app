@@ -1,3 +1,5 @@
+import { WeekSwipeArea } from '@/components/week-swipe-area';
+import { WeekSelector } from '@/components/week-selector';
 import { GameCard } from '@/components/game-card';
 import { GameInfoDrawer } from '@/components/game-info-drawer';
 import { LiveDot } from '@/components/live-dot';
@@ -27,7 +29,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type GameSection = {
-  key: 'live' | 'scheduled' | 'final';
+  key: 'live' | 'delayed' | 'scheduled' | 'final';
   title: string;
   data: Game[];
 };
@@ -94,7 +96,7 @@ function SectionHeader({ section }: { section: GameSection }) {
 }
 
 export default function HomeScreen() {
-  const { games, loading, error, refetch } = useGames();
+  const { games, loading, error, refetch, week, weeks, selectWeek } = useGames();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
   const [refreshing, setRefreshing] = useState(false);
@@ -108,8 +110,9 @@ export default function HomeScreen() {
 
   const sections = useMemo<GameSection[]>(() => {
     const grouped: GameSection[] = [
-      { key: 'live', title: 'Live', data: games.filter((g) => g.status === 'live') },
-      { key: 'scheduled', title: 'Upcoming', data: games.filter((g) => g.status === 'scheduled') },
+      { key: 'live', title: 'Live', data: games.filter((g) => g.status === 'live' && !g.interruption) },
+      { key: 'delayed', title: 'Delayed', data: games.filter((g) => !!g.interruption) },
+      { key: 'scheduled', title: 'Upcoming', data: games.filter((g) => g.status === 'scheduled' && !g.interruption) },
       { key: 'final', title: 'Final', data: games.filter((g) => g.status === 'final') },
     ];
     return grouped.filter((section) => section.data.length > 0);
@@ -153,14 +156,27 @@ export default function HomeScreen() {
       ]}
     >
       <View style={styles.header}>
-        <Image
-          source={require('../assets/images/222-logo.png')}
-          style={styles.logo}
-          contentFit="contain"
-        />
+        <View style={styles.headerRow}>
+          <Image
+            source={require('../assets/images/222-logo.png')}
+            style={styles.logo}
+            contentFit="contain"
+          />
+        </View>
         <Text style={[type.dateLine, styles.dateLine]}>{todayLine}</Text>
       </View>
 
+      <WeekSelector
+        week={week?.week_number ?? null}
+        weeks={weeks}
+        onChange={(value) => { setSelectedGameId(null); selectWeek(value); }}
+      />
+
+      <WeekSwipeArea
+        week={week?.week_number ?? null}
+        weeks={weeks}
+        onChange={(value) => { setSelectedGameId(null); selectWeek(value); }}
+      >
       {showError && <ErrorState message={error} onRetry={handleRetry} />}
 
       {showSkeletons && (
@@ -175,6 +191,7 @@ export default function HomeScreen() {
 
       {!noData && (
         <SectionList
+          key={`${week?.season_year}-${week?.week_number}`}
           sections={sections}
           keyExtractor={(game) => game.id}
           renderItem={({ item, index }) => (
@@ -212,6 +229,8 @@ export default function HomeScreen() {
           }
         />
       )}
+
+      </WeekSwipeArea>
 
       {selectedGame && (
         <GameInfoDrawer
@@ -278,6 +297,11 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.lg,
     gap: spacing.xs,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   logo: {
     width: 72,

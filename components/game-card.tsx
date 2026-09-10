@@ -20,6 +20,7 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
   const reduceMotion = useReduceMotion();
 
   const getStatusDisplay = () => {
+    if (game.interruption) return game.interruption;
     if (game.status === 'scheduled') {
       return game.start_time;
     } else if (game.status === 'live') {
@@ -106,7 +107,7 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
   const spreadInfo = getSpreadInfo();
   const overUnderInfo = getOverUnderInfo();
 
-  const isLive = game.status === 'live';
+  const isLive = game.status === 'live' && !game.interruption;
   const isFinal = game.status === 'final';
   const isScheduled = game.status === 'scheduled';
   const showBettingInfo = game.spread != null || game.total_points != null;
@@ -115,8 +116,8 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
   const awayScoreMuted = isScheduled || (isFinal && !awayWon && homeWon);
   const homeScoreMuted = isScheduled || (isFinal && !homeWon && awayWon);
 
-  const chipTone = isLive ? styles.chipLive : isFinal ? styles.chipFinal : styles.chipScheduled;
-  const chipTextTone = isLive
+  const chipTone = game.interruption ? styles.chipDelayed : isLive ? styles.chipLive : isFinal ? styles.chipFinal : styles.chipScheduled;
+  const chipTextTone = game.interruption ? styles.chipTextDelayed : isLive
     ? styles.chipTextLive
     : isFinal
       ? styles.chipTextFinal
@@ -250,6 +251,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
+  chipDelayed: { backgroundColor: colors.oddsDim },
+  chipTextDelayed: { color: colors.odds },
   chipScheduled: {
     backgroundColor: colors.surfaceElevated,
   },

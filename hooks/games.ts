@@ -1,7 +1,10 @@
+import { useGameInterruptions } from '@/hooks/game-interruptions';
 import { compareGames } from '@/lib/game-sort';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { fetch } from 'expo/fetch';
+import { matchesSelectedWeek, openingWeekStart, resolveCfbWeek, type CfbCalendar, type CfbWeek } from '@/lib/cfb-week';
 import { supabase } from '../lib/supabase';
 import { dummyGames } from './dummy-games';
 
@@ -36,6 +39,7 @@ export interface GameRow {
   created_at: string;
   updated_at: string;
   completed_at?: string | null;
+  interruption?: string;
 }
 
 // Complete game object with team data (what we use in the UI)
@@ -47,207 +51,198 @@ export interface Game extends GameRow {
 // Use Supabase's built-in payload type
 export type GameRealtimePayload = RealtimePostgresChangesPayload<GameRow>;
 
-function getCurrentWeekRange() {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + daysToMonday);
-  monday.setHours(0, 0, 0, 0);
-  
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
-  
-  return { start: monday, end: sunday };
+interface GamesResult {
+  week: CfbWeek | null;
+  games: Game[];
 }
 
-async function fetchGames(): Promise<Game[]> {
-  // TOGGLE: Comment out this line to use production API data
-  // const USE_DUMMY_DATA = true;
-  const USE_DUMMY_DATA = false;
+let lastCalendar: CfbCalendar | undefined;
 
-  if (USE_DUMMY_DATA) {
-    console.log("Using dummy data for App Store screenshots");
-    return [...dummyGames].sort(compareGames);
+async function fetchCurrentCfbWeek(): Promise<CfbWeek | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(
+      'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80',
+      { signal: controller.signal },
+    );
+    if (!response.ok) throw new Error(`ESPN calendar unavailable (${response.status})`);
+    const calendar: CfbCalendar = await response.json();
+    const week = resolveCfbWeek(calendar);
+    if (!week) throw new Error('ESPN calendar is missing season/week metadata');
+    lastCalendar = calendar;
+    return week;
+  } catch (error) {
+    console.warn('Using cached calendar or latest ingested CFB week:', error);
+    if (lastCalendar) return resolveCfbWeek(lastCalendar);
+  } finally {
+    clearTimeout(timeout);
   }
 
-  const { start, end } = getCurrentWeekRange();
-  console.log(`Fetching games from ${start.toISOString()} to ${end.toISOString()}`);
-  
-  const { data, error: fetchError } = await supabase
+  // Keep the app usable if ESPN is unavailable on a cold start. Ingestion
+  // assigns the same ESPN season/week identifiers to every game in its poll.
+  const { data, error } = await supabase.from('games')
+    .select('season_year, week_number')
+    .order('season_year', { ascending: false })
+    .order('week_number', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function fetchGames(week: CfbWeek | null, splitWeekZero: boolean): Promise<GamesResult> {
+  const USE_DUMMY_DATA = false;
+  if (USE_DUMMY_DATA) {
+    return { week: dummyGames[0] ?? null, games: [...dummyGames].sort(compareGames) };
+  }
+
+  if (!week) return { week: null, games: [] };
+  const { data, error } = await supabase
     .from('games')
     .select(`
       *,
       home_team:teams!home_team_id(id, name, abbreviation, logo),
       away_team:teams!away_team_id(id, name, abbreviation, logo)
     `)
-    .gte('game_date', start.toISOString())
-    .lte('game_date', end.toISOString())
+    .eq('season_year', week.season_year)
+    .eq('week_number', splitWeekZero && week.week_number === 0 ? 1 : week.week_number)
     .order('game_date', { ascending: true });
-
-  if (fetchError) throw fetchError;
-
-  return (data || []).sort(compareGames);
+  if (error) throw error;
+  return { week, games: (data || []).filter(game => matchesSelectedWeek(game, week, splitWeekZero))
+    .map(game => ({ ...game, week_number: week.week_number })).sort(compareGames) };
 }
 
-const createGamesSubscription = (queryClient: any, retryCount = 0) => {
-  const { start, end } = getCurrentWeekRange();
+function createGamesSubscription(queryClient: QueryClient, queryKey: readonly (string | number | null)[], splitWeekZero: boolean) {
+  let disposed = false;
+  let retryTimer: ReturnType<typeof setTimeout> | undefined;
+  let retries = 0;
+  let channel: ReturnType<typeof supabase.channel> | undefined;
 
-  const subscription = supabase
-    .channel('games-changes')
-    .on(
-      'postgres_changes' as 'postgres_changes',
-      {
-        event: '*' as const, // Listen to all events (INSERT, UPDATE, DELETE)
-        schema: 'public',
-        table: 'games', // Include transitions to final so completed games move immediately.
-      },
-      (payload: GameRealtimePayload) => {
-        console.log('Real-time update received:', payload.commit_timestamp);
-        
-        // Check if this change affects current week's games
-        const gameDate = (payload.new as GameRow)?.game_date
-        
-        if (gameDate) {
-          const gameDateTime = new Date(gameDate);
-          const isInCurrentWeek = gameDateTime >= start && gameDateTime <= end;
-          
-          if (!isInCurrentWeek) {
-            console.log('Ignoring update - game not in current week');
-            return;
-          }
+  const connect = () => {
+    if (disposed) return;
+    const connectedChannel = supabase.channel('games-changes');
+    channel = connectedChannel;
+    connectedChannel.on('postgres_changes', {
+        event: '*', schema: 'public', table: 'games',
+      }, (payload: GameRealtimePayload) => {
+        const current = queryClient.getQueryData<GamesResult>(queryKey);
+        if (!current?.week) {
+          void queryClient.invalidateQueries({ queryKey: queryKey });
+          return;
         }
-        
-        // Update the cache directly with the real-time changes
-        queryClient.setQueryData(['games'], (oldGames: Game[] | undefined) => {
-          if (!oldGames) return oldGames;
-          
-          const { eventType, new: newRecord, old: oldRecord } = payload;
-          
-          switch (eventType) {
-            case 'INSERT':
-              // For INSERT, we need complete game data with teams, so just refetch
-              // Real-time INSERT won't have the joined team data
-              console.log('INSERT EVENT');
-              queryClient.invalidateQueries({ queryKey: ['games'] });
-              return oldGames;
-              
-            case 'UPDATE':
-              console.log("UPDATE EVENT")
-              // Log the specific changes between old and new records
-              if (newRecord && oldGames) {
-                const oldRecord = oldGames.find(g => g.id === newRecord.id)
-                const changes: Record<string, { old: any; new: any }> = {};
-                
-                // Check each field in newRecord for changes
-                Object.keys(newRecord).forEach(key => {
-                  const oldValue = (oldRecord as any)?.[key];
-                  const newValue = (newRecord as any)[key];
-                  
-                  if (oldValue !== newValue) {
-                    changes[key] = { old: oldValue, new: newValue };
-                  }
-                });
-                
-                console.log('Changes:', {
-                  gameId: newRecord.id,
-                  homeTeam: oldRecord?.home_team.abbreviation,
-                  awayTeam: oldRecord?.away_team.abbreviation,
-                  changes
-                });
-              }
-              
-              // Update existing game with new data
-              if (!newRecord) return undefined;
-              
-              return oldGames.map(oldGame => 
-                oldGame.id === newRecord.id 
-                  ? { 
-                      ...oldGame, 
-                      ...newRecord,
-                      // Preserve team data since real-time updates don't include joins
-                      home_team: oldGame.home_team,
-                      away_team: oldGame.away_team
-                    } as Game
-                  : oldGame
-              ).sort(compareGames);
-              
-            case 'DELETE':
-              console.log("DELETE EVENT")
-              // Remove deleted game
-              if (!oldRecord?.id) return oldGames;
-              return oldGames.filter(game => game.id !== oldRecord.id);
-              
-            default:
-              return oldGames;
-          }
+        const row = payload.new as GameRow;
+        const id = payload.eventType === 'DELETE' ? payload.old.id : row.id;
+        const existing = current.games.find(game => game.id === id);
+        const belongs = payload.eventType !== 'DELETE' && matchesSelectedWeek(row, current.week, splitWeekZero);
+
+        if (payload.eventType !== 'DELETE' && !existing && belongs) {
+          // New games need joined team data from the normal query.
+          void queryClient.invalidateQueries({ queryKey: queryKey });
+          return;
+        }
+        if (!existing) return;
+        queryClient.setQueryData<GamesResult>(queryKey, cached => {
+          if (!cached?.week) return cached;
+          const inWeek = payload.eventType !== 'DELETE' && matchesSelectedWeek(row, cached.week, splitWeekZero);
+          return {
+            ...cached,
+            games: (inWeek
+              ? cached.games.map(game => game.id === id
+                ? { ...game, ...row, week_number: cached.week!.week_number, home_team: game.home_team, away_team: game.away_team }
+                : game)
+              : cached.games.filter(game => game.id !== id)
+            ).sort(compareGames),
+          };
         });
-      }
-    )
-    .subscribe((status, err) => {
-      console.log('🔄 Subscription status:', status, retryCount > 0 && `Retries: ${retryCount}`);
-      
-      if (err) {        
-        // Auto-retry with exponential backoff
-        if (retryCount < 5) { // Max 5 retries
-          const delay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Max 30s delay
-          console.log(`🔄 Retrying subscription in ${delay}ms (attempt ${retryCount + 1}/5)`);
-          
-          setTimeout(() => {
-            subscription.unsubscribe();
-            createGamesSubscription(queryClient, retryCount + 1);
-          }, delay);
-        } else {
-          console.error('❌ Max retries reached, giving up on real-time subscription');
+      })
+      .subscribe(status => {
+        if (disposed || channel !== connectedChannel) return;
+        if (status === 'SUBSCRIBED') {
+          retries = 0;
+        } else if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status) && !retryTimer) {
+          retryTimer = setTimeout(() => {
+            retryTimer = undefined;
+            const previous = channel;
+            channel = undefined;
+            if (previous) void supabase.removeChannel(previous);
+            connect();
+          }, Math.min(1000 * 2 ** retries++, 30000));
         }
-      } else if (status === 'SUBSCRIBED') {
-        console.log('✅ Real-time subscription established');
-      } else if (status === 'CLOSED') {
-        console.log('📡 Subscription closed, attempting to reconnect...');
-        
-        // Reconnect after a short delay
-        setTimeout(() => {
-          subscription.unsubscribe();
-          createGamesSubscription(queryClient, 0); // Reset retry count
-        }, 2000);
-      }
-    });
-
-  return subscription;
-};
+      });
+  };
+  connect();
+  return () => {
+    disposed = true;
+    clearTimeout(retryTimer);
+    if (channel) void supabase.removeChannel(channel);
+  };
+}
 
 export function useGames() {
   const queryClient = useQueryClient();
-  const subscriptionRef = useRef<any>(null);
-  
+  const [selection, setSelection] = useState<CfbWeek | null>(null);
+  const calendar = useQuery({
+    queryKey: ['cfb-calendar', 'week-selector'],
+    queryFn: async () => {
+      let current = await fetchCurrentCfbWeek();
+      const entries = lastCalendar?.leagues?.[0]?.calendar?.find(
+        season => Number(season.value) === lastCalendar?.season?.type,
+      )?.entries ?? [];
+      const weeks = [...new Set(entries.map(entry => Number(entry.value))
+        .filter(week => Number.isInteger(week) && week >= 0))];
+      if (current && !weeks.includes(current.week_number)) weeks.push(current.week_number);
+      const splitWeekZero = !weeks.includes(0);
+      if (splitWeekZero) {
+        weeks.push(0);
+        if (current?.week_number === 1 && Date.now() < openingWeekStart(current.season_year)) {
+          current = { ...current, week_number: 0 };
+        }
+      }
+      return { current, weeks: weeks.sort((a, b) => a - b), splitWeekZero };
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+  });
+  const splitWeekZero = calendar.data?.splitWeekZero ?? false;
+  const week = selection ?? calendar.data?.current ?? null;
+  const seasonYear = week?.season_year ?? null;
+  const weekNumber = week?.week_number ?? null;
+  const interruptions = useGameInterruptions(seasonYear, splitWeekZero && weekNumber === 0 ? 1 : weekNumber);
+  const queryKey = useMemo(() => ['games', 'cfb-week', seasonYear, weekNumber, splitWeekZero ? 'split-zero' : 'native-zero'], [seasonYear, weekNumber, splitWeekZero]);
   const query = useQuery({
-    queryKey: ['games'],
-    queryFn: fetchGames,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    queryKey,
+    queryFn: () => fetchGames(week, splitWeekZero),
+    enabled: week !== null,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
   });
 
-  // Set up real-time subscription with auto-reconnect
   useEffect(() => {
-    
-    console.log('🚀 Setting up real-time subscription with auto-reconnect');
-    subscriptionRef.current = createGamesSubscription(queryClient);
+    if (weekNumber === null) return;
+    return createGamesSubscription(queryClient, queryKey, splitWeekZero);
+  }, [queryClient, queryKey, weekNumber, splitWeekZero]);
 
-    // Cleanup subscription on unmount
-    return () => {
-      console.log('🧹 Cleaning up real-time subscription');
-      if (subscriptionRef.current) {
-        subscriptionRef.current.unsubscribe();
-      }
-    };
-  }, [queryClient]);
+  const games = useMemo(() => (query.data?.games || []).map(game => {
+      const interruption = game.status !== 'final' ? interruptions.data?.[game.id] : null;
+      return interruption ? {
+        ...game,
+        interruption: interruption.label,
+        status: interruption.beforeKickoff ? 'scheduled' as const : game.status,
+      } : game;
+    }), [query.data?.games, interruptions.data]);
 
   return {
-    games: query.data || [],
-    loading: query.isLoading,
-    error: query.error?.message || null,
-    refetch: query.refetch,
+    games,
+    loading: calendar.isLoading || (week !== null && query.isLoading),
+    error: calendar.error?.message || query.error?.message || null,
+    refetch: () => Promise.all([calendar.refetch(), interruptions.refetch(), ...(week ? [query.refetch()] : [])]),
+    week,
+    weeks: calendar.data?.weeks ?? [],
+    selectWeek: (weekNumber: number) => {
+      if (!calendar.data?.current || !calendar.data.weeks.includes(weekNumber)) return;
+      setSelection({ season_year: calendar.data.current.season_year, week_number: weekNumber });
+    },
   };
 }
