@@ -12,11 +12,12 @@ import { GameCardTeamRow } from './game-card-team-row';
 interface GameCardProps {
   game: Game;
   narrative?: Narrative;
+  headline?: string;
   /** Opens the game-info drawer; omit for a non-interactive card. */
   onPress?: () => void;
 }
 
-export function GameCard({ game, narrative, onPress }: GameCardProps) {
+export function GameCard({ game, narrative, headline, onPress }: GameCardProps) {
   const reduceMotion = useReduceMotion();
 
   const getStatusDisplay = () => {
@@ -177,10 +178,10 @@ export function GameCard({ game, narrative, onPress }: GameCardProps) {
         />
       </View>
 
-      {narrative && (
+      {(headline || narrative) && (
         <>
           <View style={styles.divider} />
-          <GameNarrative narrative={narrative} compact />
+          <GameNarrative narrative={narrative} headline={headline} compact />
         </>
       )}
 
