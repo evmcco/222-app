@@ -24,6 +24,9 @@ export interface GameRow {
   home_moneyline: number | null;
   away_team_id: string;
   away_team_score: number;
+  /** Q1–Q4, then each OT. Null means unavailable/unplayed; zero is a confirmed score. */
+  home_team_period_scores?: (number | null)[] | null;
+  away_team_period_scores?: (number | null)[] | null;
   away_team_ranking: number | null;
   away_moneyline: number | null;
   status: 'scheduled' | 'live' | 'final';
