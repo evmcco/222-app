@@ -103,7 +103,7 @@ export default function HomeScreen() {
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
 
   const gameIds = useMemo(() => games.map((game) => game.id).sort(), [games]);
-  const { narrativesByGameId, refetch: refetchNarratives } = useNarratives(gameIds);
+  const { narrativesByGameId, headlinesByGameId, refetch: refetchNarratives } = useNarratives(gameIds);
   const selectedGame = selectedGameId
     ? games.find((game) => game.id === selectedGameId) ?? null
     : null;
@@ -199,6 +199,7 @@ export default function HomeScreen() {
               <GameCard
                 game={item}
                 narrative={narrativesByGameId.get(item.id)}
+                headline={headlinesByGameId.get(item.id)?.headline}
                 onPress={() => setSelectedGameId(item.id)}
               />
             </CardEntrance>

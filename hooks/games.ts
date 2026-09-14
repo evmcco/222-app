@@ -37,6 +37,7 @@ export interface GameRow {
   spread: number;
   total_points: number;
   week_number: number;
+  season_type?: number;
   season_year: number;
   game_date: string;
   created_at: string;
@@ -82,14 +83,23 @@ async function fetchCurrentCfbWeek(): Promise<CfbWeek | null> {
     clearTimeout(timeout);
   }
 
-  // Keep the app usable if ESPN is unavailable on a cold start. Ingestion
-  // assigns the same ESPN season/week identifiers to every game in its poll.
+  // The daily job caches the calendar, so importing December cannot select it in September.
+  const { data: saved } = await supabase.from('cfb_calendars')
+    .select('calendar').order('season_year', { ascending: false }).limit(1).maybeSingle();
+  if (saved?.calendar) {
+    const resolved = resolveCfbWeek(saved.calendar as CfbCalendar);
+    if (resolved) { lastCalendar = saved.calendar as CfbCalendar; return resolved; }
+  }
+  // Final fallback: closest upcoming game, then most recent past game; never maximum week.
+  const now = new Date().toISOString();
+  const { data: next, error: nextError } = await supabase.from('games')
+    .select('season_year,season_type,week_number').gte('game_date', now)
+    .order('game_date', { ascending: true }).limit(1).maybeSingle();
+  if (nextError) throw nextError;
+  if (next) return next;
   const { data, error } = await supabase.from('games')
-    .select('season_year, week_number')
-    .order('season_year', { ascending: false })
-    .order('week_number', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .select('season_year,season_type,week_number').lte('game_date', now)
+    .order('game_date', { ascending: false }).limit(1).maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -109,6 +119,7 @@ async function fetchGames(week: CfbWeek | null, splitWeekZero: boolean): Promise
       away_team:teams!away_team_id(id, name, abbreviation, logo)
     `)
     .eq('season_year', week.season_year)
+    .eq('season_type', week.season_type ?? 2)
     .eq('week_number', splitWeekZero && week.week_number === 0 ? 1 : week.week_number)
     .order('game_date', { ascending: true });
   if (error) throw error;
@@ -190,12 +201,12 @@ export function useGames() {
     queryFn: async () => {
       let current = await fetchCurrentCfbWeek();
       const entries = lastCalendar?.leagues?.[0]?.calendar?.find(
-        season => Number(season.value) === lastCalendar?.season?.type,
+        season => Number(season.value) === (current?.season_type ?? lastCalendar?.season?.type),
       )?.entries ?? [];
       const weeks = [...new Set(entries.map(entry => Number(entry.value))
         .filter(week => Number.isInteger(week) && week >= 0))];
       if (current && !weeks.includes(current.week_number)) weeks.push(current.week_number);
-      const splitWeekZero = !weeks.includes(0);
+      const splitWeekZero = current?.season_type !== 3 && !weeks.includes(0);
       if (splitWeekZero) {
         weeks.push(0);
         if (current?.week_number === 1 && Date.now() < openingWeekStart(current.season_year)) {
@@ -211,8 +222,9 @@ export function useGames() {
   const week = selection ?? calendar.data?.current ?? null;
   const seasonYear = week?.season_year ?? null;
   const weekNumber = week?.week_number ?? null;
-  const interruptions = useGameInterruptions(seasonYear, splitWeekZero && weekNumber === 0 ? 1 : weekNumber);
-  const queryKey = useMemo(() => ['games', 'cfb-week', seasonYear, weekNumber, splitWeekZero ? 'split-zero' : 'native-zero'], [seasonYear, weekNumber, splitWeekZero]);
+  const seasonType = week?.season_type ?? 2;
+  const interruptions = useGameInterruptions(seasonYear, splitWeekZero && weekNumber === 0 ? 1 : weekNumber, seasonType);
+  const queryKey = useMemo(() => ['games', 'cfb-week', seasonYear, seasonType, weekNumber, splitWeekZero ? 'split-zero' : 'native-zero'], [seasonYear, seasonType, weekNumber, splitWeekZero]);
   const query = useQuery({
     queryKey,
     queryFn: () => fetchGames(week, splitWeekZero),
@@ -245,7 +257,7 @@ export function useGames() {
     weeks: calendar.data?.weeks ?? [],
     selectWeek: (weekNumber: number) => {
       if (!calendar.data?.current || !calendar.data.weeks.includes(weekNumber)) return;
-      setSelection({ season_year: calendar.data.current.season_year, week_number: weekNumber });
+      setSelection({ ...calendar.data.current, week_number: weekNumber });
     },
   };
 }
