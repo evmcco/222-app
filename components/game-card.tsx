@@ -11,13 +11,14 @@ import { GameCardTeamRow } from './game-card-team-row';
 
 interface GameCardProps {
   game: Game;
+  pinned?: boolean;
   narrative?: Narrative;
   headline?: string;
   /** Opens the game-info drawer; omit for a non-interactive card. */
   onPress?: () => void;
 }
 
-export function GameCard({ game, narrative, headline, onPress }: GameCardProps) {
+export function GameCard({ game, narrative, headline, onPress, pinned = false }: GameCardProps) {
   const reduceMotion = useReduceMotion();
 
   const getStatusDisplay = () => {
@@ -145,6 +146,7 @@ export function GameCard({ game, narrative, headline, onPress }: GameCardProps) 
       style={({ pressed }) => [
         styles.card,
         isLive && styles.cardLive,
+        pinned && styles.cardPinned,
         pressed && styles.cardPressed,
       ]}
     >
@@ -216,6 +218,7 @@ export function GameCard({ game, narrative, headline, onPress }: GameCardProps) 
 }
 
 const styles = StyleSheet.create({
+  cardPinned: { borderColor: colors.odds },
   card: {
     backgroundColor: colors.surface,
     borderWidth: 1,

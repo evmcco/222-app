@@ -5,7 +5,10 @@ import { GameInfoDrawer } from '@/components/game-info-drawer';
 import { LiveDot } from '@/components/live-dot';
 import { SkeletonCard } from '@/components/skeleton-card';
 import { colors, radius, spacing, type } from '@/constants/theme';
-import { Game, useGames } from '@/hooks/games';
+import { useGames } from '@/hooks/games';
+import { GameFilterDropdown } from '@/components/game-filter-dropdown';
+import { useGamePreferences } from '@/hooks/use-game-preferences';
+import { buildGameSections, type GameSection } from '@/lib/game-filters';
 import { useNarratives } from '@/hooks/narratives';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,12 +30,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-type GameSection = {
-  key: 'live' | 'delayed' | 'scheduled' | 'final';
-  title: string;
-  data: Game[];
-};
 
 /** Staggered fade/slide-up card entrance; static under reduce-motion. */
 function CardEntrance({
@@ -78,11 +75,13 @@ function SectionHeader({ section }: { section: GameSection }) {
   return (
     <View style={styles.sectionHeader}>
       {isLive && <LiveDot size={8} />}
+      {section.key === 'pinned' && <Ionicons name="pin" size={14} color={colors.odds} />}
       <Text
         style={[
           type.sectionHeader,
           styles.sectionTitle,
           isLive && styles.sectionTitleLive,
+          section.key === 'pinned' && styles.sectionTitlePinned,
           section.key === 'final' && styles.sectionTitleFinal,
         ]}
       >
@@ -97,6 +96,7 @@ function SectionHeader({ section }: { section: GameSection }) {
 
 export default function HomeScreen() {
   const { games, loading, error, refetch, week, weeks, selectWeek } = useGames();
+  const { filter, pins, ready, setFilter, togglePin } = useGamePreferences();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
   const [refreshing, setRefreshing] = useState(false);
@@ -108,27 +108,8 @@ export default function HomeScreen() {
     ? games.find((game) => game.id === selectedGameId) ?? null
     : null;
 
-  const sections = useMemo<GameSection[]>(() => {
-    const grouped: GameSection[] = [
-      { key: 'live', title: 'Live', data: games.filter((g) => g.status === 'live' && !g.interruption) },
-      { key: 'delayed', title: 'Delayed', data: games.filter((g) => !!g.interruption) },
-      { key: 'scheduled', title: 'Upcoming', data: games.filter((g) => g.status === 'scheduled' && !g.interruption) },
-      { key: 'final', title: 'Final', data: games.filter((g) => g.status === 'final') },
-    ];
-    return grouped.filter((section) => section.data.length > 0);
-  }, [games]);
-
-  const todayLine = useMemo(
-    () =>
-      new Date()
-        .toLocaleDateString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-        })
-        .toUpperCase(),
-    [],
-  );
+  const sections = useMemo(() => buildGameSections(games, filter, pins), [games, filter, pins]);
+  const visibleCount = sections.reduce((count, section) => count + section.data.length, 0);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -144,9 +125,9 @@ export default function HomeScreen() {
   };
 
   const noData = games.length === 0;
-  const showSkeletons = noData && loading && !error;
+  const showSkeletons = !ready || (noData && loading && !error);
   const showError = noData && !!error && !loading;
-  const showEmpty = noData && !loading && !error;
+  const showEmpty = ready && noData && !loading && !error;
 
   return (
     <View
@@ -162,8 +143,8 @@ export default function HomeScreen() {
             style={styles.logo}
             contentFit="contain"
           />
+          <GameFilterDropdown value={filter} onChange={setFilter} disabled={!ready} />
         </View>
-        <Text style={[type.dateLine, styles.dateLine]}>{todayLine}</Text>
       </View>
 
       <WeekSelector
@@ -189,15 +170,16 @@ export default function HomeScreen() {
 
       {showEmpty && <EmptyState />}
 
-      {!noData && (
+      {ready && !noData && (
         <SectionList
-          key={`${week?.season_year}-${week?.week_number}`}
+          key={`${week?.season_year}-${week?.week_number}-${filter}`}
           sections={sections}
           keyExtractor={(game) => game.id}
           renderItem={({ item, index }) => (
             <CardEntrance index={index} reduceMotion={reduceMotion}>
               <GameCard
                 game={item}
+                pinned={pins.includes(item.id)}
                 narrative={narrativesByGameId.get(item.id)}
                 headline={headlinesByGameId.get(item.id)?.headline}
                 onPress={() => setSelectedGameId(item.id)}
@@ -220,11 +202,19 @@ export default function HomeScreen() {
               progressBackgroundColor={colors.surface}
             />
           }
+          ListEmptyComponent={
+            <View style={styles.stateContainer}>
+              <Text style={[type.body, styles.sectionTitle]}>No matching games this week</Text>
+              <Pressable accessibilityRole="button" onPress={() => setFilter('all')} style={styles.clearFilter}>
+                <Text style={[type.body, styles.sectionTitleLive]}>Clear filter</Text>
+              </Pressable>
+            </View>
+          }
           ListFooterComponent={
-            games.length > 0 ? (
+            visibleCount > 0 ? (
               <Text style={[type.sectionHeader, styles.footer]}>
                 Week {games[0].week_number} · {games[0].season_year} ·{' '}
-                {games.length} games
+                {visibleCount} games
               </Text>
             ) : null
           }
@@ -236,6 +226,8 @@ export default function HomeScreen() {
       {selectedGame && (
         <GameInfoDrawer
           game={selectedGame}
+          pinned={pins.includes(selectedGame.id)}
+          onTogglePin={() => togglePin(selectedGame.id)}
           narrative={narrativesByGameId.get(selectedGame.id)}
           onClose={() => setSelectedGameId(null)}
         />
@@ -308,9 +300,8 @@ const styles = StyleSheet.create({
     width: 72,
     height: 36,
   },
-  dateLine: {
-    color: colors.textTertiary,
-  },
+  clearFilter: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.lg },
+  sectionTitlePinned: { color: colors.odds },
   listContent: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xl,

@@ -56,3 +56,10 @@ This app demonstrates several React Native best practices:
 - **Developer Experience**: TypeScript, file-based routing, comprehensive error handling
 
 *Built as a portfolio project showcasing modern React Native development patterns*
+### Game filters and pins
+
+The header dropdown applies one filter to the selected week. Pins stay in a separate section, ordered by kickoff; filtered-out pins remain saved. Both preferences are stored on the device with AsyncStorage (`222:game-preferences:v1`).
+
+The bundled 2026 team catalog supplies conference membership and home state without runtime team requests. It includes FCS opponent states; only states with FBS schools appear in the dropdown. Before a new season, run `node scripts/update-team-catalog.mjs YEAR` and update the catalog import in `lib/game-filters.ts`. The generator reads ESPN's season-specific FBS groups and team home-venue addresses (not individual game venues). Review membership and location changes before shipping the refreshed catalog.
+
+Run filter/grouping checks with `node --test tests/game-filters.test.cjs`.

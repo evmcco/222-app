@@ -35,6 +35,8 @@ const DRAWER_HEIGHT_RATIO = 0.75;
 
 interface GameInfoDrawerProps {
   game: Game;
+  pinned?: boolean;
+  onTogglePin?: () => void;
   narrative?: Narrative;
   onClose: () => void;
 }
@@ -149,7 +151,7 @@ function InfoRowView({ label, value }: InfoRow) {
   );
 }
 
-export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps) {
+export function GameInfoDrawer({ game, narrative, onClose, pinned = false, onTogglePin }: GameInfoDrawerProps) {
   const reduceMotion = useReduceMotion();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -259,6 +261,10 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
       >
         <View style={styles.drawerBar}>
           <View style={styles.grabHandle} />
+          {onTogglePin && <Pressable onPress={onTogglePin} accessibilityRole="button"
+            accessibilityLabel={pinned ? 'Unpin game' : 'Pin game'} accessibilityState={{ selected: pinned }} style={styles.pinButton}>
+            <Ionicons name={pinned ? 'pin' : 'pin-outline'} size={20} color={pinned ? colors.odds : colors.textSecondary} />
+          </Pressable>}
           <Pressable onPress={handleClose} accessibilityRole="button" accessibilityLabel="Close game details" style={styles.closeButton}>
             <Ionicons name="close" size={20} color={colors.textSecondary} />
           </Pressable>
@@ -350,6 +356,7 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
 }
 
 const styles = StyleSheet.create({
+  pinButton: { position: 'absolute', left: 8, top: 0, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
