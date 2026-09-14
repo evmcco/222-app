@@ -6,8 +6,11 @@ import type { GameNarrative as Narrative } from '@/hooks/narratives';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { PeriodScoreboard } from '@/components/period-scoreboard';
 import {
+  BackHandler,
+  PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -27,8 +30,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-/** Panel covers roughly half the screen, per the review request. */
-const DRAWER_HEIGHT_RATIO = 0.55;
+/** Leave the scoreboard visible above the expanded details. */
+const DRAWER_HEIGHT_RATIO = 0.75;
 
 interface GameInfoDrawerProps {
   game: Game;
@@ -151,6 +154,11 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const progress = useSharedValue(reduceMotion ? 1 : 0);
+  const drag = useSharedValue(0);
+  const scrollOffset = useRef(0);
+  const dismissGesture = useRef<{ startedAtTop: boolean; direction: boolean | null }>({ startedAtTop: false, direction: null });
+  const closeRef = useRef<() => void>(() => {});
+  const closing = useRef(false);
   const drawerHeight = Math.round(windowHeight * DRAWER_HEIGHT_RATIO);
 
   useEffect(() => {
@@ -163,6 +171,8 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
   }, [progress, reduceMotion]);
 
   const handleClose = () => {
+    if (closing.current) return;
+    closing.current = true;
     if (reduceMotion) {
       onClose();
       return;
@@ -176,10 +186,41 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
     );
   };
 
+  closeRef.current = handleClose;
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      closeRef.current();
+      return true;
+    });
+    return () => subscription.remove();
+  }, []);
+  const pan = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponderCapture: () => {
+      // Decide eligibility once: scrolling back to the top must never turn
+      // an existing content-scroll gesture into a dismissal.
+      dismissGesture.current = { startedAtTop: scrollOffset.current <= 1, direction: null };
+      return false;
+    },
+    onMoveShouldSetPanResponderCapture: (_, gesture) => {
+      const session = dismissGesture.current;
+      if (closing.current || !session.startedAtTop || gesture.numberActiveTouches !== 1) return false;
+      if (session.direction === null && Math.max(Math.abs(gesture.dx), Math.abs(gesture.dy)) > 8) {
+        session.direction = gesture.dy > 8 && gesture.dy > Math.abs(gesture.dx) * 1.5;
+      }
+      return session.direction === true;
+    },
+    onPanResponderMove: (_, gesture) => { drag.value = Math.max(0, gesture.dy); },
+    onPanResponderRelease: (_, gesture) => {
+      if (gesture.dy > 80 || (gesture.dy > 20 && gesture.vy > 0.7)) closeRef.current();
+      else drag.value = withTiming(0, { duration: reduceMotion ? 0 : 180 });
+    },
+    onPanResponderTerminate: () => { drag.value = withTiming(0, { duration: reduceMotion ? 0 : 180 }); },
+  }), [drag, reduceMotion]);
+
   const panelStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateY: interpolate(
+        translateY: drag.value + interpolate(
           progress.value,
           [0, 1],
           [drawerHeight, 0],
@@ -213,10 +254,18 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
       <Animated.View
         style={[styles.panel, { height: drawerHeight, paddingBottom: insets.bottom + spacing.lg }, panelStyle]}
         accessibilityViewIsModal
+        onAccessibilityEscape={handleClose}
+        {...pan.panHandlers}
       >
-        <View style={styles.grabHandle} />
+        <View style={styles.drawerBar}>
+          <View style={styles.grabHandle} />
+          <Pressable onPress={handleClose} accessibilityRole="button" accessibilityLabel="Close game details" style={styles.closeButton}>
+            <Ionicons name="close" size={20} color={colors.textSecondary} />
+          </Pressable>
+        </View>
 
-        <ScrollView contentContainerStyle={styles.panelContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.panelContent} showsVerticalScrollIndicator={false} bounces={false}
+          onScroll={event => { scrollOffset.current = event.nativeEvent.contentOffset.y; }} scrollEventThrottle={16}>
           <View style={styles.headerRow}>
             <View
               style={[
@@ -253,11 +302,7 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
             <Text style={[type.small, styles.dateLabel]}>{game.date_display}</Text>
           </View>
 
-          <Text style={[type.small, styles.matchupMeta]}>
-            {game.away_team.abbreviation} @ {game.home_team.abbreviation}
-          </Text>
-
-          <View style={styles.teamsBlock}>
+          {isScheduled ? <View style={styles.teamsBlock}>
             <DrawerTeamRow
               logo={game.away_team.logo}
               name={game.away_team.name}
@@ -274,7 +319,7 @@ export function GameInfoDrawer({ game, narrative, onClose }: GameInfoDrawerProps
               score={game.home_team_score}
               showScore={!isScheduled}
             />
-          </View>
+          </View> : <PeriodScoreboard game={game} />}
 
           {narrative && (
             <>
@@ -320,14 +365,15 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
+  drawerBar: { height: 40, justifyContent: 'center' },
+  closeButton: { position: 'absolute', right: 8, top: 0, width: 44, height: 40, alignItems: 'center', justifyContent: 'center' },
   grabHandle: {
     alignSelf: 'center',
     width: 36,
     height: 4,
     borderRadius: radius.pill,
     backgroundColor: colors.textTertiary,
-    marginTop: spacing.sm,
-    marginBottom: spacing.xs,
+
   },
   panelContent: {
     paddingHorizontal: spacing.lg,
@@ -369,10 +415,6 @@ const styles = StyleSheet.create({
   },
   dateLabel: {
     color: colors.textTertiary,
-  },
-  matchupMeta: {
-    color: colors.textTertiary,
-    marginBottom: spacing.sm,
   },
   teamsBlock: {
     gap: spacing.xs,
