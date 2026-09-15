@@ -1,3 +1,4 @@
+import { localGameTime } from '@/lib/game-local-time';
 import { LiveDot } from '@/components/live-dot';
 import { GameNarrative } from '@/components/game-narrative';
 import { colors, radius, spacing, type } from '@/constants/theme';
@@ -24,16 +25,16 @@ export function GameCard({ game, narrative, headline, onPress, pinned = false }:
   const getStatusDisplay = () => {
     if (game.interruption) return game.interruption;
     if (game.status === 'scheduled') {
-      return game.start_time;
+      return localGameTime(game).time;
     } else if (game.status === 'live') {
       if (game.current_game_time === '0:00') {
         if (game.quarter === '2nd')
           return 'Halftime'
         return `End of ${game.quarter}`;
       }
-      return `${game.quarter} ${game.current_game_time}`;
+      return [game.quarter, game.current_game_time].filter(Boolean).join(' ');
     } else {
-      return 'FINAL';
+      return /OT$/i.test(game.quarter ?? '') ? `FINAL · ${game.quarter}` : 'FINAL';
     }
   };
 

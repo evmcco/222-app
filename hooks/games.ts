@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { fetch } from 'expo/fetch';
 import { matchesSelectedWeek, openingWeekStart, resolveCfbWeek, type CfbCalendar, type CfbWeek } from '@/lib/cfb-week';
 import { supabase } from '../lib/supabase';
-import { dummyGames } from './dummy-games';
 
 export interface Team {
   id: string;
@@ -34,8 +33,8 @@ export interface GameRow {
   start_time: string;
   current_game_time: string | null;
   quarter: string | null;
-  spread: number;
-  total_points: number;
+  spread: number | null;
+  total_points: number | null;
   week_number: number;
   season_type?: number;
   season_year: number;
@@ -105,11 +104,6 @@ async function fetchCurrentCfbWeek(): Promise<CfbWeek | null> {
 }
 
 async function fetchGames(week: CfbWeek | null, splitWeekZero: boolean): Promise<GamesResult> {
-  const USE_DUMMY_DATA = false;
-  if (USE_DUMMY_DATA) {
-    return { week: dummyGames[0] ?? null, games: [...dummyGames].sort(compareGames) };
-  }
-
   if (!week) return { week: null, games: [] };
   const { data, error } = await supabase
     .from('games')

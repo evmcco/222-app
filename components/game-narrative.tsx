@@ -21,7 +21,7 @@ export function GameNarrative({ narrative, headline, compact = false }: GameNarr
 
   return (
     <View style={styles.drawerNarrative}>
-      <Text style={[type.small, { color: colors.textSecondary }]}>Quarter End Summary · {narrative.period <= 4 ? `Q${narrative.period}` : `OT${narrative.period - 4}`}{narrative.is_final ? ' · Final' : ''}</Text>
+      <Text style={[type.small, { color: colors.textSecondary }]}>Game Update · {narrative.period <= 4 ? `Q${narrative.period}` : `OT${narrative.period - 4}`}{narrative.is_final ? ' · Final' : ''}</Text>
       <Text selectable style={[type.headline, styles.drawerHeadline]}>
         {narrative.headline}
       </Text>

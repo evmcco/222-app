@@ -1,10 +1,11 @@
+import { localGameTime } from '@/lib/game-local-time';
 import { useGameDetails, type GameDetails } from '@/hooks/game-details';
 import { colors, radius, spacing, type } from '@/constants/theme';
 import { GameNarrative } from '@/components/game-narrative';
 import type { Game } from '@/hooks/games';
 import type { GameNarrative as Narrative } from '@/hooks/narratives';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { PeriodScoreboard } from '@/components/period-scoreboard';
@@ -35,6 +36,7 @@ const DRAWER_HEIGHT_RATIO = 0.75;
 
 interface GameInfoDrawerProps {
   game: Game;
+  detailsOverride?: GameDetails;
   pinned?: boolean;
   onTogglePin?: () => void;
   narrative?: Narrative;
@@ -69,12 +71,13 @@ function formatStatusLine(game: Game): string {
     }
     return [game.quarter, game.current_game_time].filter(Boolean).join(' · ');
   }
-  if (game.status === 'final') return 'Final';
+  if (game.status === 'final') return /OT$/i.test(game.quarter ?? '') ? `Final · ${game.quarter}` : 'Final';
   return 'Upcoming';
 }
 
 function getGameInfoRows(game: Game, details: GameDetails | undefined, loading: boolean): InfoRow[] {
-  const kickoff = [game.date_display, game.start_time].filter(Boolean).join(' · ');
+  const localTime = localGameTime(game);
+  const kickoff = `${localTime.date} · ${localTime.time}`;
   return [
     { label: 'Kickoff', value: kickoff },
     { label: 'Location', value: details?.location || (loading ? 'Loading…' : 'Unavailable') },
@@ -151,7 +154,7 @@ function InfoRowView({ label, value }: InfoRow) {
   );
 }
 
-export function GameInfoDrawer({ game, narrative, onClose, pinned = false, onTogglePin }: GameInfoDrawerProps) {
+export function GameInfoDrawer({ detailsOverride, game, narrative, onClose, pinned = false, onTogglePin }: GameInfoDrawerProps) {
   const reduceMotion = useReduceMotion();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -235,7 +238,7 @@ export function GameInfoDrawer({ game, narrative, onClose, pinned = false, onTog
     opacity: progress.value,
   }));
 
-  const details = useGameDetails(game.id);
+  const details = useGameDetails(game.id, detailsOverride);
   const infoRows = getGameInfoRows(game, details.data, details.isPending);
   const bettingRows = getBettingRows(game);
   const isScheduled = game.status === 'scheduled';
@@ -263,7 +266,7 @@ export function GameInfoDrawer({ game, narrative, onClose, pinned = false, onTog
           <View style={styles.grabHandle} />
           {onTogglePin && <Pressable onPress={onTogglePin} accessibilityRole="button"
             accessibilityLabel={pinned ? 'Unpin game' : 'Pin game'} accessibilityState={{ selected: pinned }} style={styles.pinButton}>
-            <Ionicons name={pinned ? 'pin' : 'pin-outline'} size={20} color={pinned ? colors.odds : colors.textSecondary} />
+            <FontAwesome5 name="thumbtack" size={18} color={pinned ? colors.odds : colors.textSecondary} />
           </Pressable>}
           <Pressable onPress={handleClose} accessibilityRole="button" accessibilityLabel="Close game details" style={styles.closeButton}>
             <Ionicons name="close" size={20} color={colors.textSecondary} />
@@ -305,7 +308,7 @@ export function GameInfoDrawer({ game, narrative, onClose, pinned = false, onTog
                 {statusLine}
               </Text>
             </View>
-            <Text style={[type.small, styles.dateLabel]}>{game.date_display}</Text>
+            <Text style={[type.small, styles.dateLabel]}>{localGameTime(game).date}</Text>
           </View>
 
           {isScheduled ? <View style={styles.teamsBlock}>

@@ -1,20 +1,23 @@
+import { DemoController, type DemoControls } from '@/components/demo-controller';
+import { demoCatalog, demoDefaultPins, demoDetails, demoNarratives, demoWeek, gamesForDemo } from '@/lib/demo-games';
+import type { GameFilter } from '@/lib/game-filters';
 import { WeekSwipeArea } from '@/components/week-swipe-area';
 import { WeekSelector } from '@/components/week-selector';
 import { GameCard } from '@/components/game-card';
 import { GameInfoDrawer } from '@/components/game-info-drawer';
-import { LiveDot } from '@/components/live-dot';
 import { SkeletonCard } from '@/components/skeleton-card';
 import { colors, radius, spacing, type } from '@/constants/theme';
 import { useGames } from '@/hooks/games';
 import { GameFilterDropdown } from '@/components/game-filter-dropdown';
 import { useGamePreferences } from '@/hooks/use-game-preferences';
 import { useTeamMetadata } from '@/hooks/use-team-metadata';
-import { buildGameSections, getFilterOptions, type GameSection } from '@/lib/game-filters';
+import { matchesGameFilter, getFilterOptions } from '@/lib/game-filters';
+import { buildDatedGameSections } from '@/lib/game-date-sections';
 import { useNarratives } from '@/hooks/narratives';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   RefreshControl,
@@ -71,34 +74,49 @@ function CardSeparator(): React.JSX.Element {
   return <View style={styles.cardSeparator} />;
 }
 
-function SectionHeader({ section }: { section: GameSection }) {
-  const isLive = section.key === 'live';
-  return (
-    <View style={styles.sectionHeader}>
-      {isLive && <LiveDot size={8} />}
-      {section.key === 'pinned' && <Ionicons name="pin" size={14} color={colors.odds} />}
-      <Text
-        style={[
-          type.sectionHeader,
-          styles.sectionTitle,
-          isLive && styles.sectionTitleLive,
-          section.key === 'pinned' && styles.sectionTitlePinned,
-          section.key === 'final' && styles.sectionTitleFinal,
-        ]}
-      >
-        {section.title}
-      </Text>
-      <Text style={[type.sectionHeader, styles.sectionCount]}>
-        {section.data.length}
-      </Text>
-    </View>
-  );
+export default function HomeScreen() {
+  return __DEV__ ? <DemoController>{controls => controls.scenario
+    ? <DemoHome key={controls.scenario} controls={controls} />
+    : <LiveHome controls={controls} />}</DemoController> : <LiveHome />;
 }
 
-export default function HomeScreen() {
-  const { games, loading, error, refetch, week, weeks, selectWeek } = useGames();
-  const { filter, pins, ready, setFilter, togglePin } = useGamePreferences();
-  const metadata = useTeamMetadata(week?.season_year ?? null);
+function LiveHome({ controls }: { controls?: DemoControls }) {
+  const source = useGames();
+  const preferences = useGamePreferences();
+  const metadata = useTeamMetadata(source.week?.season_year ?? null);
+  const gameIds = useMemo(() => source.games.map(game => game.id).sort(), [source.games]);
+  const narratives = useNarratives(gameIds);
+  return <HomeView source={source} preferences={preferences} metadata={metadata} narratives={narratives} controls={controls} />;
+}
+
+function DemoHome({ controls }: { controls: DemoControls }) {
+  const [filter, setFilter] = useState<GameFilter>('all');
+  const [pins, setPins] = useState<string[]>(demoDefaultPins);
+  const games = useMemo(() => gamesForDemo(controls.scenario!), [controls.scenario]);
+  return <HomeView controls={controls}
+    source={{ games, week: demoWeek, weeks: [demoWeek.week_number], loading: false, error: null, refetch: async () => [], selectWeek: () => {} }}
+    preferences={{ filter, pins, ready: true, setFilter, togglePin: id => setPins(current => current.includes(id) ? current.filter(pin => pin !== id) : [...current, id]) }}
+    metadata={{ catalog: demoCatalog, loading: false }}
+    narratives={{ narrativesByGameId: demoNarratives, headlinesByGameId: new Map(), refetch: async () => [] }} />;
+}
+
+function HomeView({ source, preferences, metadata, narratives, controls }: {
+  source: Omit<ReturnType<typeof useGames>, 'refetch'> & { refetch: () => Promise<unknown> };
+  preferences: ReturnType<typeof useGamePreferences>;
+  metadata: Pick<ReturnType<typeof useTeamMetadata>, 'catalog' | 'loading'> & { retry?: () => unknown };
+  narratives: Pick<ReturnType<typeof useNarratives>, 'narrativesByGameId' | 'headlinesByGameId'> & { refetch: () => Promise<unknown> };
+  controls?: DemoControls;
+}) {
+  const { games, loading, error, refetch, week, weeks, selectWeek } = source;
+  const { filter, pins, ready, setFilter, togglePin } = preferences;
+  const lastLogoTap = useRef<number | null>(null);
+  const onLogoPress = () => {
+    const now = Date.now();
+    if (lastLogoTap.current !== null && now - lastLogoTap.current < 350) {
+      lastLogoTap.current = null;
+      controls?.openMenu();
+    } else lastLogoTap.current = now;
+  };
   const filterOptions = useMemo(() => getFilterOptions(metadata.catalog), [metadata.catalog]);
   const needsMetadata = filter !== 'all' && filter !== 'ranked';
   const metadataUnavailable = needsMetadata && !metadata.catalog;
@@ -107,14 +125,16 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
 
-  const gameIds = useMemo(() => games.map((game) => game.id).sort(), [games]);
-  const { narrativesByGameId, headlinesByGameId, refetch: refetchNarratives } = useNarratives(gameIds);
+  const { narrativesByGameId, headlinesByGameId, refetch: refetchNarratives } = narratives;
   const selectedGame = selectedGameId
     ? games.find((game) => game.id === selectedGameId) ?? null
     : null;
 
-  const sections = useMemo(() => buildGameSections(games, filter, pins, metadata.catalog), [games, filter, pins, metadata.catalog]);
-  const visibleCount = sections.reduce((count, section) => count + section.data.length, 0);
+  const datedSections = useMemo(() => buildDatedGameSections(
+    games.filter(game => matchesGameFilter(game, filter, metadata.catalog)),
+    pins,
+  ), [games, filter, metadata.catalog, pins]);
+  const visibleCount = datedSections.reduce((count, section) => count + section.data.length, 0);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -143,20 +163,26 @@ export default function HomeScreen() {
     >
       <View style={styles.header}>
         <View style={styles.headerRow}>
+          <Pressable disabled={!__DEV__} onPress={onLogoPress} accessibilityRole={__DEV__ ? "button" : undefined} accessibilityLabel={__DEV__ ? "222 logo. Double tap to open developer menu" : "222"} hitSlop={8}>
           <Image
             source={require('../assets/images/222-logo.png')}
             style={styles.logo}
             contentFit="contain"
           />
+          </Pressable>
           <GameFilterDropdown options={filterOptions} value={filter} onChange={setFilter} disabled={!ready} />
         </View>
       </View>
+
+      {controls?.scenario && !controls.hideBadge && <Pressable accessibilityRole="button" onPress={controls.openMenu} style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+        <Text style={[type.small, { color: colors.odds }]}>DEMO · {controls.scenario}</Text>
+      </Pressable>}
 
       {!metadata.catalog && <View style={styles.metadataNotice}>
         <Text style={[type.small, styles.sectionTitle]}>
           {metadata.loading ? 'Loading conference and state filters…' : 'Conference and state filters unavailable'}
         </Text>
-        {!metadata.loading && <Pressable accessibilityRole="button" onPress={() => { void metadata.retry(); }} style={styles.clearFilter}>
+        {!metadata.loading && <Pressable accessibilityRole="button" onPress={() => { void metadata.retry?.(); }} style={styles.clearFilter}>
           <Text style={[type.small, styles.sectionTitleLive]}>Retry</Text>
         </Pressable>}
       </View>}
@@ -187,7 +213,7 @@ export default function HomeScreen() {
       {ready && !noData && (
         <SectionList
           key={`${week?.season_year}-${week?.week_number}-${filter}`}
-          sections={sections}
+          sections={datedSections}
           keyExtractor={(game) => game.id}
           renderItem={({ item, index }) => (
             <CardEntrance index={index} reduceMotion={reduceMotion}>
@@ -202,7 +228,15 @@ export default function HomeScreen() {
           )}
           ItemSeparatorComponent={CardSeparator}
           renderSectionHeader={(info) => (
-            <SectionHeader section={info.section as GameSection} />
+            <>
+              <View style={styles.dateDivider}>
+                <View style={styles.dateRule} />
+                <Text accessibilityRole="header" style={[type.small, styles.dateTitle, info.section.key === 'pinned' && { color: colors.odds }]}>
+                  {info.section.dateLabel}
+                </Text>
+                <View style={styles.dateRule} />
+              </View>
+            </>
           )}
           stickySectionHeadersEnabled={false}
           contentContainerStyle={styles.listContent}
@@ -240,6 +274,7 @@ export default function HomeScreen() {
       {selectedGame && (
         <GameInfoDrawer
           game={selectedGame}
+          detailsOverride={controls?.scenario ? demoDetails : undefined}
           pinned={pins.includes(selectedGame.id)}
           onTogglePin={() => togglePin(selectedGame.id)}
           narrative={narrativesByGameId.get(selectedGame.id)}
@@ -330,6 +365,22 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   sectionTitle: {
+    color: colors.textSecondary,
+  },
+  dateDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+  },
+  dateRule: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  dateTitle: {
+    flexShrink: 1,
+    textAlign: 'center',
     color: colors.textSecondary,
   },
   sectionTitleLive: {

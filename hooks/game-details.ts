@@ -38,9 +38,11 @@ export function parseGameDetails(summary: ESPNSummary): GameDetails {
   return { location, channels };
 }
 
-export function useGameDetails(gameId: string) {
+export function useGameDetails(gameId: string, detailsOverride?: GameDetails) {
   return useQuery({
     queryKey: ['game-details', gameId],
+    enabled: !detailsOverride,
+    initialData: detailsOverride,
     queryFn: async ({ signal }): Promise<GameDetails> => {
       const response = await fetch(
         `https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=${encodeURIComponent(gameId)}`,
