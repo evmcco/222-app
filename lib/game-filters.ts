@@ -1,9 +1,12 @@
-import catalog from '@/constants/fbs-teams-2026.json';
 import type { Game } from '@/hooks/games';
 
 export type GameFilter = 'all' | 'ranked' | `conference:${string}` | `state:${string}`;
 export type FilterOption = { value: GameFilter; label: string; group?: string };
-const teams: Record<string, { conference: string; state: string }> = catalog.teams;
+export type TeamMetadata = {
+  season_year: number; team_id: string; name: string; state: string; division: 'fbs' | 'fcs';
+  conference_id: string; conference_name: string; conference_tier: 'p4' | 'g6' | 'independent' | 'fcs';
+};
+export type TeamCatalog = { season: number; rows: TeamMetadata[]; teams: Record<string, TeamMetadata> };
 const stateNames: Record<string, string> = {
   AL: 'Alabama', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut',
   DE: 'Delaware', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana',
@@ -15,31 +18,58 @@ const stateNames: Record<string, string> = {
   WY: 'Wyoming', NE: 'Nebraska', ND: 'North Dakota', MT: 'Montana', ME: 'Maine', NH: 'New Hampshire',
   VT: 'Vermont', AK: 'Alaska',
 };
-export const filterOptions: FilterOption[] = [
-  { value: 'all', label: 'All games' },
-  { value: 'ranked', label: 'Ranked' },
-  ...[
-    ['1', 'ACC', 'P4 Conferences'], ['4', 'Big 12'], ['5', 'Big Ten'], ['8', 'SEC'],
-    ['151', 'American', 'G6 Conferences'], ['12', 'Conference USA'], ['15', 'Mid-American'],
-    ['17', 'Mountain West'], ['9', 'Pac-12'], ['37', 'Sun Belt'], ['18', 'Independents'],
-  ].map(([id, label, group]) => ({ value: `conference:${id}` as GameFilter, label, group })),
-  ...[...catalog.fbsStates]
-    .sort((a, b) => stateNames[a].localeCompare(stateNames[b]))
-    .map((state, index) => ({ value: `state:${state}` as GameFilter, label: stateNames[state], group: index === 0 ? 'States' : undefined })),
-];
-
+export const basicFilterOptions: FilterOption[] = [{ value: 'all', label: 'All games' }, { value: 'ranked', label: 'Ranked' }];
+export function makeTeamCatalog(rows: unknown, season: number): TeamCatalog {
+  if (!Array.isArray(rows) || rows.length < 230 || rows.length > 500) throw new Error('Team metadata is incomplete');
+  const teams: Record<string, TeamMetadata> = {};
+  for (const row of rows) {
+    if (!row || row.season_year !== season || typeof row.team_id !== 'string' || !/^\d+$/.test(row.team_id) || teams[row.team_id]
+      || typeof row.name !== 'string' || !row.name || ![...Object.keys(stateNames), 'DC'].includes(row.state)
+      || !['fbs', 'fcs'].includes(row.division) || typeof row.conference_id !== 'string' || !row.conference_id
+      || typeof row.conference_name !== 'string' || !row.conference_name
+      || !['p4', 'g6', 'independent', 'fcs'].includes(row.conference_tier)
+      || (row.division === 'fcs') !== (row.conference_tier === 'fcs')) throw new Error('Invalid team metadata');
+    teams[row.team_id] = row;
+  }
+  if (rows.filter(row => row.division === 'fbs').length < 130) throw new Error('FBS metadata is incomplete');
+  return { season, rows, teams };
+}
+export function getFilterOptions(catalog?: TeamCatalog): FilterOption[] {
+  if (!catalog) return basicFilterOptions;
+  const fbs = catalog.rows.filter(team => team.division === 'fbs');
+  const conferences = [...new Map(fbs.map(team => [team.conference_id, team])).values()];
+  const order = { p4: 0, g6: 1, independent: 2, fcs: 3 };
+  conferences.sort((a, b) => order[a.conference_tier] - order[b.conference_tier] || a.conference_name.localeCompare(b.conference_name));
+  const seen = new Set<string>();
+  return [...basicFilterOptions,
+    ...conferences.map(team => {
+      const group = seen.has(team.conference_tier) ? undefined : ({ p4: 'P4 Conferences', g6: 'G6 Conferences', independent: undefined, fcs: undefined }[team.conference_tier]);
+      seen.add(team.conference_tier);
+      return { value: `conference:${team.conference_id}` as GameFilter, label: team.conference_name, group };
+    }),
+    ...[...new Set(fbs.map(team => team.state))].filter(state => stateNames[state])
+      .sort((a, b) => stateNames[a].localeCompare(stateNames[b]))
+      .map((state, index) => ({ value: `state:${state}` as GameFilter, label: stateNames[state], group: index === 0 ? 'States' : undefined })),
+  ];
+}
 export function isGameFilter(value: unknown): value is GameFilter {
-  return filterOptions.some(option => option.value === value);
+  if (typeof value !== 'string') return false;
+  return value === 'all' || value === 'ranked' || /^conference:\d+$/.test(value)
+    || (value.startsWith('state:') && Object.hasOwn(stateNames, value.slice(6)));
+}
+export function savedFilterLabel(value: GameFilter) {
+  return basicFilterOptions.find(option => option.value === value)?.label
+    ?? (value.startsWith('state:') ? stateNames[value.slice(6)] : 'Saved conference');
 }
 
-export function matchesGameFilter(game: Game, filter: GameFilter): boolean {
+export function matchesGameFilter(game: Game, filter: GameFilter, catalog?: TeamCatalog): boolean {
   if (filter === 'all') return true;
   if (filter === 'ranked') return [game.home_team_ranking, game.away_team_ranking]
     .some(rank => rank != null && rank >= 1 && rank <= 25);
   const [kind, value] = filter.split(':');
   return [game.home_team_id, game.away_team_id].some(id => {
-    const team = teams[id];
-    return team && (kind === 'conference' ? team.conference === value : team.state === value);
+    const team = catalog?.season === game.season_year ? catalog.teams[id] : undefined;
+    return team && (kind === 'conference' ? team.conference_id === value : team.state === value);
   });
 }
 
@@ -48,9 +78,9 @@ function kickoff(game: Game) {
   const date = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(game.game_date) ? game.game_date : `${game.game_date}Z`;
   return Date.parse(date) || 0;
 }
-export function buildGameSections(games: Game[], filter: GameFilter, pins: readonly string[]): GameSection[] {
+export function buildGameSections(games: Game[], filter: GameFilter, pins: readonly string[], catalog?: TeamCatalog): GameSection[] {
   const pinnedIds = new Set(pins);
-  const visible = games.filter(game => matchesGameFilter(game, filter));
+  const visible = games.filter(game => matchesGameFilter(game, filter, catalog));
   const unpinned = visible.filter(game => !pinnedIds.has(game.id));
   const sections: GameSection[] = [
     { key: 'pinned', title: 'Pinned', data: visible.filter(game => pinnedIds.has(game.id)).sort((a, b) => kickoff(a) - kickoff(b) || a.id.localeCompare(b.id)) },

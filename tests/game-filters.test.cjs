@@ -2,12 +2,17 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const fs = require('node:fs');
 const ts = require('typescript');
-const code = ts.transpileModule(fs.readFileSync(require.resolve('../lib/game-filters.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText;
+const code = ts.transpileModule(fs.readFileSync(require.resolve('../lib/game-filters.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
 const helpers = {};
 new Function('exports', 'require', code)(helpers, name => require(name.replace('@/constants/', '../constants/')));
-const { matchesGameFilter, buildGameSections, filterOptions, isGameFilter } = helpers;
+const { matchesGameFilter: match, buildGameSections: build, getFilterOptions, makeTeamCatalog, isGameFilter } = helpers;
+const rows = require('./team-metadata-2026.json');
+const catalog = makeTeamCatalog(rows, 2026);
+const filterOptions = getFilterOptions(catalog);
+const matchesGameFilter = (game, filter) => match(game, filter, catalog);
+const buildGameSections = (games, filter, pins) => build(games, filter, pins, catalog);
 function game(id, overrides = {}) {
-  return { id, home_team_id: '52', away_team_id: '61', home_team_ranking: null, away_team_ranking: null, status: 'scheduled', game_date: '2026-09-19T16:00:00', ...overrides };
+  return { id, season_year: 2026, home_team_id: '52', away_team_id: '61', home_team_ranking: null, away_team_ranking: null, status: 'scheduled', game_date: '2026-09-19T16:00:00', ...overrides };
 }
 test('ranked includes either top-25 team and excludes unranked sentinels', () => {
   assert.equal(matchesGameFilter(game('a', { away_team_ranking: 25 }), 'ranked'), true);
@@ -40,10 +45,24 @@ test('menu order, single values and states are valid', () => {
 });
 
 test('state matches an FCS opponent but the menu offers only FBS states', () => {
-  const catalog = require('../constants/fbs-teams-2026.json');
-  const fcsGeorgia = Object.entries(catalog.teams).find(([, t]) => t.conference === 'fcs' && t.state === 'GA');
+  const fcsGeorgia = rows.find(t => t.division === 'fcs' && t.state === 'GA');
   assert(fcsGeorgia);
-  assert.equal(matchesGameFilter(game('fcs', { home_team_id: 'unknown', away_team_id: fcsGeorgia[0] }), 'state:GA'), true);
+  assert.equal(matchesGameFilter(game('fcs', { home_team_id: 'unknown', away_team_id: fcsGeorgia.team_id }), 'state:GA'), true);
   assert.equal(filterOptions.some(o => o.value === 'state:MT'), false);
-  assert.equal(Object.values(catalog.teams).filter(t => t.conference !== 'fcs').length, 138);
+  assert.equal(rows.filter(t => t.division === 'fbs').length, 138);
+});
+
+test('missing metadata keeps basic filters usable and never borrows another season', () => {
+  assert.deepEqual(getFilterOptions().map(o => o.value), ['all', 'ranked']);
+  assert.equal(match(game('a'), 'all'), true);
+  assert.equal(match(game('a', { away_team_ranking: 8 }), 'ranked'), true);
+  assert.equal(match(game('a'), 'state:FL'), false);
+  assert.equal(match(game('a', { season_year: 2027 }), 'conference:1', catalog), false);
+});
+test('cache validation rejects partial, malformed, duplicate and wrong-season data', () => {
+  assert.throws(() => makeTeamCatalog(rows.slice(0, 100), 2026));
+  assert.throws(() => makeTeamCatalog(rows, 2027));
+  assert.throws(() => makeTeamCatalog([...rows.slice(1), rows[1]], 2026));
+  assert.throws(() => makeTeamCatalog(rows.map((r, i) => i ? r : { ...r, state: 'ZZ' }), 2026));
+  assert.deepEqual(makeTeamCatalog(JSON.parse(JSON.stringify(rows)), 2026), catalog);
 });

@@ -8,7 +8,8 @@ import { colors, radius, spacing, type } from '@/constants/theme';
 import { useGames } from '@/hooks/games';
 import { GameFilterDropdown } from '@/components/game-filter-dropdown';
 import { useGamePreferences } from '@/hooks/use-game-preferences';
-import { buildGameSections, type GameSection } from '@/lib/game-filters';
+import { useTeamMetadata } from '@/hooks/use-team-metadata';
+import { buildGameSections, getFilterOptions, type GameSection } from '@/lib/game-filters';
 import { useNarratives } from '@/hooks/narratives';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { Ionicons } from '@expo/vector-icons';
@@ -97,6 +98,10 @@ function SectionHeader({ section }: { section: GameSection }) {
 export default function HomeScreen() {
   const { games, loading, error, refetch, week, weeks, selectWeek } = useGames();
   const { filter, pins, ready, setFilter, togglePin } = useGamePreferences();
+  const metadata = useTeamMetadata(week?.season_year ?? null);
+  const filterOptions = useMemo(() => getFilterOptions(metadata.catalog), [metadata.catalog]);
+  const needsMetadata = filter !== 'all' && filter !== 'ranked';
+  const metadataUnavailable = needsMetadata && !metadata.catalog;
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
   const [refreshing, setRefreshing] = useState(false);
@@ -108,7 +113,7 @@ export default function HomeScreen() {
     ? games.find((game) => game.id === selectedGameId) ?? null
     : null;
 
-  const sections = useMemo(() => buildGameSections(games, filter, pins), [games, filter, pins]);
+  const sections = useMemo(() => buildGameSections(games, filter, pins, metadata.catalog), [games, filter, pins, metadata.catalog]);
   const visibleCount = sections.reduce((count, section) => count + section.data.length, 0);
 
   const handleRefresh = async () => {
@@ -143,9 +148,18 @@ export default function HomeScreen() {
             style={styles.logo}
             contentFit="contain"
           />
-          <GameFilterDropdown value={filter} onChange={setFilter} disabled={!ready} />
+          <GameFilterDropdown options={filterOptions} value={filter} onChange={setFilter} disabled={!ready} />
         </View>
       </View>
+
+      {!metadata.catalog && <View style={styles.metadataNotice}>
+        <Text style={[type.small, styles.sectionTitle]}>
+          {metadata.loading ? 'Loading conference and state filters…' : 'Conference and state filters unavailable'}
+        </Text>
+        {!metadata.loading && <Pressable accessibilityRole="button" onPress={() => { void metadata.retry(); }} style={styles.clearFilter}>
+          <Text style={[type.small, styles.sectionTitleLive]}>Retry</Text>
+        </Pressable>}
+      </View>}
 
       <WeekSelector
         week={week?.week_number ?? null}
@@ -204,7 +218,7 @@ export default function HomeScreen() {
           }
           ListEmptyComponent={
             <View style={styles.stateContainer}>
-              <Text style={[type.body, styles.sectionTitle]}>No matching games this week</Text>
+              <Text style={[type.body, styles.sectionTitle]}>{metadataUnavailable ? (metadata.loading ? 'Loading your saved filter…' : 'Unable to load your saved filter') : 'No matching games this week'}</Text>
               <Pressable accessibilityRole="button" onPress={() => setFilter('all')} style={styles.clearFilter}>
                 <Text style={[type.body, styles.sectionTitleLive]}>Clear filter</Text>
               </Pressable>
@@ -300,6 +314,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 36,
   },
+  metadataNotice: { paddingHorizontal: spacing.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   clearFilter: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.lg },
   sectionTitlePinned: { color: colors.odds },
   listContent: {

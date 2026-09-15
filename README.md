@@ -60,6 +60,6 @@ This app demonstrates several React Native best practices:
 
 The header dropdown applies one filter to the selected week. Pins stay in a separate section, ordered by kickoff; filtered-out pins remain saved. Both preferences are stored on the device with AsyncStorage (`222:game-preferences:v1`).
 
-The bundled 2026 team catalog supplies conference membership and home state without runtime team requests. It includes FCS opponent states; only states with FBS schools appear in the dropdown. Before a new season, run `node scripts/update-team-catalog.mjs YEAR` and update the catalog import in `lib/game-filters.ts`. The generator reads ESPN's season-specific FBS groups and team home-venue addresses (not individual game venues). Review membership and location changes before shipping the refreshed catalog.
+Conference and state metadata comes from Supabase `team_filter_metadata`, selected by season and persisted in AsyncStorage. The dropdown is derived from the metadata (FBS conference groups and states); FCS opponent states also match. Cached data remains usable when the network is unavailable. With no metadata, All games and Ranked work and a retry control is shown. The backend repo owns the verified seed, weekly ESPN import, validation, and deployment instructions in `docs/team-metadata.md`. Deploy its schema/seed before using this app version.
 
 Run filter/grouping checks with `node --test tests/game-filters.test.cjs`.

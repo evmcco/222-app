@@ -1,16 +1,16 @@
 import { colors, radius, spacing, type } from '@/constants/theme';
-import { filterOptions, type GameFilter } from '@/lib/game-filters';
+import { savedFilterLabel, type FilterOption, type GameFilter } from '@/lib/game-filters';
 import { Ionicons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export function GameFilterDropdown({ value, onChange, disabled }: { value: GameFilter; onChange: (value: GameFilter) => void; disabled?: boolean }) {
+export function GameFilterDropdown({ value, onChange, disabled, options }: { options: FilterOption[]; value: GameFilter; onChange: (value: GameFilter) => void; disabled?: boolean }) {
   const [anchorBottom, setAnchorBottom] = useState<number | null>(null);
   const anchor = useRef<View>(null);
   const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const selected = filterOptions.find(option => option.value === value)!;
+  const selected = options.find(option => option.value === value) ?? { label: savedFilterLabel(value) };
   const close = () => setAnchorBottom(null);
   return (
     <>
@@ -27,10 +27,10 @@ export function GameFilterDropdown({ value, onChange, disabled }: { value: GameF
           <View accessibilityViewIsModal onAccessibilityEscape={close}
             style={[styles.menu, { top: anchorBottom ?? insets.top, right: Math.max(insets.right, spacing.lg), width: Math.min(280, width - spacing.xxxl), maxHeight: Math.max(100, Math.min(540, height - (anchorBottom ?? 0) - insets.bottom - spacing.lg)) }]}>
             <ScrollView showsVerticalScrollIndicator contentContainerStyle={styles.options}>
-              {filterOptions.map(option => (
+              {options.map(option => (
                 <View key={option.value}>
                   {option.group && <Text style={[type.sectionHeader, styles.group]}>{option.group}</Text>}
-                  <Pressable accessibilityRole="radio" accessibilityState={{ selected: value === option.value }}
+                  <Pressable accessibilityRole="radio" accessibilityState={{ checked: value === option.value }}
                     onPress={() => { onChange(option.value); close(); }}
                     style={({ pressed }) => [styles.option, value === option.value && styles.selected, pressed && styles.pressed]}>
                     <Text style={[type.body, styles.optionLabel, value === option.value && styles.activeLabel]}>{option.label}</Text>
