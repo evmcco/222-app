@@ -97,14 +97,14 @@ function DemoHome({ controls }: { controls: DemoControls }) {
     source={{ games, week: demoWeek, weeks: [demoWeek.week_number], loading: false, error: null, refetch: async () => [], selectWeek: () => {} }}
     preferences={{ filter, pins, ready: true, setFilter, togglePin: id => setPins(current => current.includes(id) ? current.filter(pin => pin !== id) : [...current, id]) }}
     metadata={{ catalog: demoCatalog, loading: false }}
-    narratives={{ narrativesByGameId: demoNarratives, headlinesByGameId: new Map(), refetch: async () => [] }} />;
+    narratives={{ narrativesByGameId: demoNarratives, refetch: async () => [] }} />;
 }
 
 function HomeView({ source, preferences, metadata, narratives, controls }: {
   source: Omit<ReturnType<typeof useGames>, 'refetch'> & { refetch: () => Promise<unknown> };
   preferences: ReturnType<typeof useGamePreferences>;
   metadata: Pick<ReturnType<typeof useTeamMetadata>, 'catalog' | 'loading'> & { retry?: () => unknown };
-  narratives: Pick<ReturnType<typeof useNarratives>, 'narrativesByGameId' | 'headlinesByGameId'> & { refetch: () => Promise<unknown> };
+  narratives: Pick<ReturnType<typeof useNarratives>, 'narrativesByGameId'> & { refetch: () => Promise<unknown> };
   controls?: DemoControls;
 }) {
   const { games, loading, error, refetch, week, weeks, selectWeek } = source;
@@ -125,7 +125,7 @@ function HomeView({ source, preferences, metadata, narratives, controls }: {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
 
-  const { narrativesByGameId, headlinesByGameId, refetch: refetchNarratives } = narratives;
+  const { narrativesByGameId, refetch: refetchNarratives } = narratives;
   const selectedGame = selectedGameId
     ? games.find((game) => game.id === selectedGameId) ?? null
     : null;
@@ -221,7 +221,6 @@ function HomeView({ source, preferences, metadata, narratives, controls }: {
                 game={item}
                 pinned={pins.includes(item.id)}
                 narrative={narrativesByGameId.get(item.id)}
-                headline={headlinesByGameId.get(item.id)?.headline}
                 onPress={() => setSelectedGameId(item.id)}
               />
             </CardEntrance>

@@ -14,12 +14,11 @@ interface GameCardProps {
   game: Game;
   pinned?: boolean;
   narrative?: Narrative;
-  headline?: string;
   /** Opens the game-info drawer; omit for a non-interactive card. */
   onPress?: () => void;
 }
 
-export function GameCard({ game, narrative, headline, onPress, pinned = false }: GameCardProps) {
+export function GameCard({ game, narrative, onPress, pinned = false }: GameCardProps) {
   const reduceMotion = useReduceMotion();
 
   const getStatusDisplay = () => {
@@ -181,10 +180,10 @@ export function GameCard({ game, narrative, headline, onPress, pinned = false }:
         />
       </View>
 
-      {(headline || narrative) && (
+      {narrative && (
         <>
           <View style={styles.divider} />
-          <GameNarrative narrative={narrative} headline={headline} compact />
+          <GameNarrative narrative={narrative} compact />
         </>
       )}
 

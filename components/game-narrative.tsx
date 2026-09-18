@@ -4,20 +4,19 @@ import { StyleSheet, Text, View } from 'react-native';
 
 interface GameNarrativeProps {
   narrative?: Narrative;
-  headline?: string;
   compact?: boolean;
 }
 
-export function GameNarrative({ narrative, headline, compact = false }: GameNarrativeProps) {
+export function GameNarrative({ narrative, compact = false }: GameNarrativeProps) {
+  if (!narrative) return null;
+
   if (compact) {
     return (
       <Text selectable style={[type.body, styles.cardHeadline]} numberOfLines={2}>
-        {headline ?? narrative?.headline}
+        {narrative.headline}
       </Text>
     );
   }
-
-  if (!narrative) return null;
 
   return (
     <View style={styles.drawerNarrative}>
@@ -25,9 +24,11 @@ export function GameNarrative({ narrative, headline, compact = false }: GameNarr
       <Text selectable style={[type.headline, styles.drawerHeadline]}>
         {narrative.headline}
       </Text>
-      <Text selectable style={[type.body, styles.drawerDetail]}>
-        {narrative.detail}
-      </Text>
+      {narrative.detail && (
+        <Text selectable style={[type.body, styles.drawerDetail]}>
+          {narrative.detail}
+        </Text>
+      )}
     </View>
   );
 }

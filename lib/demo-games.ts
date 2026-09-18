@@ -147,6 +147,7 @@ const narrativeCopy: Record<string, { period: number; headline: string; detail: 
 };
 export const demoNarratives = new Map<string, GameNarrative>(demoGames.filter(game => game.status !== 'scheduled').map(game => [game.id, {
   id: `${game.id}:narrative`, game_id: game.id, ...narrativeCopy[game.id], is_final: game.status === 'final',
-  created_at: game.updated_at, updated_at: game.updated_at,
+  event_order: narrativeCopy[game.id].period * 1_000_000,
+  home_score: game.home_team_score, away_score: game.away_team_score, updated_at: game.updated_at,
 }]));
 export const demoDetails = { location: 'Demo Stadium · Atlanta, GA', channels: ['ABC', 'ESPN+'] };
