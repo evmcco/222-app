@@ -16,12 +16,6 @@
       }
     },
     "android": {
-      // "adaptiveIcon": {
-      //   "backgroundColor": "#E6F4FE",
-      //   "foregroundImage": "./assets/images/android-icon-foreground.png",
-      //   "backgroundImage": "./assets/images/android-icon-background.png",
-      //   "monochromeImage": "./assets/images/android-icon-monochrome.png"
-      // },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.twotwotwo.app"
@@ -55,6 +49,12 @@
         "projectId": "3e062a1e-7668-43b0-890d-0f58bba5325a"
       }
     },
-    "owner": "evmcco"
+    "owner": "evmcco",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3e062a1e-7668-43b0-890d-0f58bba5325a"
+    }
   }
 }

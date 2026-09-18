@@ -39,6 +39,10 @@ npm run ios        # iOS simulator
 npm run android    # Android emulator
 ```
 
+## OTA updates
+
+EAS Update is configured for preview and production builds. See [the OTA release guide](docs/ota-updates.md) for the initial build rollout, publishing commands, runtime compatibility, and rollback steps. Existing installations need a new store build before they can receive updates.
+
 ## Portfolio Notes
 
 This app demonstrates several React Native best practices:
