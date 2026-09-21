@@ -4,8 +4,25 @@ import type { GameNarrative } from '@/hooks/narratives';
 
 // Fictional, frozen snapshot. Never use these IDs with a live service.
 export const demoWeek = { season_year: 2026, season_type: 2, week_number: 3 };
-export const demoScenarios = ['Saturday · 2 PM', 'Upcoming', 'In progress', 'Completed', 'Overtime', 'Delayed'] as const;
+export const demoScenarios = ['Saturday · 2 PM', 'Sorting · Saturday', 'Sorting · after midnight', 'Upcoming', 'In progress', 'Completed', 'Overtime', 'Delayed'] as const;
 export type DemoScenario = typeof demoScenarios[number];
+
+export const sortingDemoGuide = 'Expected: pinned Georgia–Georgia Tech, then Iowa–Wisconsin; live games from 3OT down to Q1; delays; Utah–BYU final before Kansas State–Kansas; upcoming games; Thursday Louisville–Pittsburgh final before Friday Florida State–Florida. Pin or unpin a game to check its position.';
+export function demoDescription(scenario: DemoScenario): string {
+  if (scenario === 'Sorting · Saturday') return `Frozen Saturday Sep 19 at 6 PM in your local timezone. ${sortingDemoGuide}`;
+  if (scenario === 'Sorting · after midnight') return 'Frozen Sunday Sep 20 at 12:15 AM in your local timezone. Saturday’s live games and midgame delay stay above Sunday’s upcoming games. Finished games move to the bottom, Thursday through Saturday. Pins stay in kickoff order.';
+  return 'Fictional, frozen Saturday Sep 19 at 2 PM Eastern. Includes Friday finals and early kickoffs.';
+}
+
+export function nowForDemo(scenario: DemoScenario): Date {
+  if (scenario === 'Sorting · Saturday') return new Date(2026, 8, 19, 18);
+  if (scenario === 'Sorting · after midnight') return new Date(2026, 8, 20, 0, 15);
+  return new Date('2026-09-19T18:00:00Z');
+}
+
+export function pinsForDemo(scenario: DemoScenario): string[] {
+  return scenario.startsWith('Sorting ·') ? ['demo:13-no-odds', 'demo:01-q3'] : [...demoDefaultPins];
+}
 const identities = [
   ['61', 'Georgia', 'UGA', 'GA', '8', 'SEC'], ['59', 'Georgia Tech', 'GT', 'GA', '1', 'ACC'],
   ['194', 'Ohio State', 'OSU', 'OH', '5', 'Big Ten'], ['130', 'Michigan', 'MICH', 'MI', '5', 'Big Ten'],
@@ -65,6 +82,7 @@ export const demoGames: Game[] = [
   fixture('16-no-periods', 15, 'final', '4th', '0:00', [17], [24], { home_team_period_scores: null, away_team_period_scores: null }),
 ];
 export function gamesForDemo(scenario: DemoScenario): Game[] {
+  if (scenario.startsWith('Sorting ·')) return sortingGames(scenario === 'Sorting · after midnight');
   return demoGames.filter(game => {
     switch (scenario) {
       case 'Upcoming': return game.status === 'scheduled' && !game.interruption;
@@ -74,6 +92,37 @@ export function gamesForDemo(scenario: DemoScenario): Game[] {
       case 'Delayed': return !!game.interruption;
       default: return true;
     }
+  });
+}
+
+function sortingGames(afterMidnight: boolean): Game[] {
+  // Local calendar fixtures keep Thursday/Friday/Saturday consistent in any timezone.
+  const at = (day: number, hour: number, minute = 0) => new Date(2026, 8, day, hour, minute).toISOString();
+  const liveKickoff = at(19, afterMidnight ? 21 : 12);
+  const dates: Record<string, string> = {
+    'demo:05-final': at(18, 19),
+    'demo:16-no-periods': at(17, 19),
+    'demo:11-final-ot': at(19, 12),
+    'demo:12-push': at(19, 13),
+    'demo:06-upcoming': afterMidnight ? at(20, 13) : at(19, 20),
+    'demo:13-no-odds': at(20, 16),
+    'demo:15-suspended': at(20, 20),
+    'demo:14-pregame-delay': afterMidnight ? at(20, 0) : at(19, 17),
+  };
+  return demoGames.map(game => {
+    const kickoff = dates[game.id] ?? liveKickoff;
+    return {
+      ...game, game_date: kickoff, start_time: kickoff, created_at: kickoff,
+      date_display: new Date(kickoff).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      updated_at: nowForDemo(afterMidnight ? 'Sorting · after midnight' : 'Sorting · Saturday').toISOString(),
+      completed_at: game.id === 'demo:11-final-ot' ? at(19, 17, 50)
+        : game.id === 'demo:12-push' ? at(19, 17, 30)
+        : game.status === 'final' ? at(game.id === 'demo:05-final' ? 18 : 17, 23) : null,
+      ...(game.id === 'demo:15-suspended' ? {
+        status: 'scheduled' as const, quarter: null, current_game_time: null, interruption: undefined,
+        home_team_score: 0, away_team_score: 0, home_team_period_scores: [], away_team_period_scores: [],
+      } : {}),
+    };
   });
 }
 // Each entry describes the latest scoring sequence, not a quarter-end recap.
@@ -150,4 +199,11 @@ export const demoNarratives = new Map<string, GameNarrative>(demoGames.filter(ga
   event_order: narrativeCopy[game.id].period * 1_000_000,
   home_score: game.home_team_score, away_score: game.away_team_score, updated_at: game.updated_at,
 }]));
+export function narrativesForDemo(games: Game[]): Map<string, GameNarrative> {
+  return new Map(games.flatMap(game => {
+    const narrative = demoNarratives.get(game.id);
+    return game.status !== 'scheduled' && narrative
+      ? [[game.id, { ...narrative, updated_at: game.updated_at }] as const] : [];
+  }));
+}
 export const demoDetails = { location: 'Demo Stadium · Atlanta, GA', channels: ['ABC', 'ESPN+'] };

@@ -9,7 +9,7 @@
 - Preview and production are release builds. Updates download in the background at startup and apply after a subsequent restart. No forced reload or custom update UI is required.
 - An offline launch uses the embedded bundle or an already downloaded update. App data still follows its existing network/cache behavior.
 
-The runtime is currently `1.1.0`, from `expo.version`. Keep that version for compatible OTA changes. Before changing native code or configuration that affects the native runtime, bump `expo.version` (and keep `package.json` aligned), then build new binaries. The production profile's `autoIncrement` changes build numbers/version codes, not this runtime version. Never publish a native-dependent change under an older runtime.
+The runtime is currently `1.2.0`, from `expo.version`. Keep that version for compatible OTA changes. Before changing native code or configuration that affects the native runtime, bump `expo.version` (and keep `package.json` aligned), then build new binaries. The production profile's `autoIncrement` changes build numbers/version codes, not this runtime version. Never publish a native-dependent change under an older runtime.
 
 ## First rollout
 

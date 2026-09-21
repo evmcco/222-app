@@ -1,5 +1,5 @@
 import { DemoController, type DemoControls } from '@/components/demo-controller';
-import { demoCatalog, demoDefaultPins, demoDetails, demoNarratives, demoWeek, gamesForDemo } from '@/lib/demo-games';
+import { demoCatalog, demoDetails, demoWeek, gamesForDemo, narrativesForDemo, nowForDemo, pinsForDemo } from '@/lib/demo-games';
 import type { GameFilter } from '@/lib/game-filters';
 import { WeekSwipeArea } from '@/components/week-swipe-area';
 import { WeekSelector } from '@/components/week-selector';
@@ -15,6 +15,7 @@ import { matchesGameFilter, getFilterOptions } from '@/lib/game-filters';
 import { buildDatedGameSections } from '@/lib/game-date-sections';
 import { useNarratives } from '@/hooks/narratives';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
+import { useLocalDay } from '@/hooks/use-local-day';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -91,21 +92,24 @@ function LiveHome({ controls }: { controls?: DemoControls }) {
 
 function DemoHome({ controls }: { controls: DemoControls }) {
   const [filter, setFilter] = useState<GameFilter>('all');
-  const [pins, setPins] = useState<string[]>(demoDefaultPins);
+  const [pins, setPins] = useState<string[]>(() => pinsForDemo(controls.scenario!));
   const games = useMemo(() => gamesForDemo(controls.scenario!), [controls.scenario]);
-  return <HomeView controls={controls}
+  const demoNow = useMemo(() => nowForDemo(controls.scenario!), [controls.scenario]);
+  const demoNarratives = useMemo(() => narrativesForDemo(games), [games]);
+  return <HomeView controls={controls} sortingDate={demoNow}
     source={{ games, week: demoWeek, weeks: [demoWeek.week_number], loading: false, error: null, refetch: async () => [], selectWeek: () => {} }}
     preferences={{ filter, pins, ready: true, setFilter, togglePin: id => setPins(current => current.includes(id) ? current.filter(pin => pin !== id) : [...current, id]) }}
     metadata={{ catalog: demoCatalog, loading: false }}
     narratives={{ narrativesByGameId: demoNarratives, refetch: async () => [] }} />;
 }
 
-function HomeView({ source, preferences, metadata, narratives, controls }: {
+function HomeView({ source, preferences, metadata, narratives, controls, sortingDate }: {
   source: Omit<ReturnType<typeof useGames>, 'refetch'> & { refetch: () => Promise<unknown> };
   preferences: ReturnType<typeof useGamePreferences>;
   metadata: Pick<ReturnType<typeof useTeamMetadata>, 'catalog' | 'loading'> & { retry?: () => unknown };
   narratives: Pick<ReturnType<typeof useNarratives>, 'narrativesByGameId'> & { refetch: () => Promise<unknown> };
   controls?: DemoControls;
+  sortingDate?: Date;
 }) {
   const { games, loading, error, refetch, week, weeks, selectWeek } = source;
   const { filter, pins, ready, setFilter, togglePin } = preferences;
@@ -122,6 +126,7 @@ function HomeView({ source, preferences, metadata, narratives, controls }: {
   const metadataUnavailable = needsMetadata && !metadata.catalog;
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
+  const localDay = useLocalDay();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
 
@@ -133,7 +138,8 @@ function HomeView({ source, preferences, metadata, narratives, controls }: {
   const datedSections = useMemo(() => buildDatedGameSections(
     games.filter(game => matchesGameFilter(game, filter, metadata.catalog)),
     pins,
-  ), [games, filter, metadata.catalog, pins]);
+    sortingDate ?? localDay,
+  ), [games, filter, metadata.catalog, pins, localDay, sortingDate]);
   const visibleCount = datedSections.reduce((count, section) => count + section.data.length, 0);
 
   const handleRefresh = async () => {

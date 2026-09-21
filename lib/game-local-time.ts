@@ -5,6 +5,11 @@ export function gameDate(value: string): Date {
   return new Date(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : `${value}Z`);
 }
 
+export function localDateKey(date: Date): string {
+  return Number.isFinite(date.getTime())
+    ? `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}` : 'unknown';
+}
+
 export function localGameTime(game: Pick<Game, 'game_date' | 'start_time'>) {
   const date = gameDate(game.game_date);
   if (!Number.isFinite(date.getTime())) return { date: 'Date TBD', time: 'TBD' };

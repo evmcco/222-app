@@ -1,31 +1,29 @@
 import type { Game } from '@/hooks/games';
-import { gameDate, localGameTime } from './game-local-time';
+import { gameDate, localDateKey, localGameTime } from './game-local-time';
+import { compareGames, compareKickoff } from './game-sort';
 
 export type DatedGameSection = { key: string; dateLabel: string; data: Game[] };
 
-export function buildDatedGameSections(games: Game[], pins: readonly string[] = []): DatedGameSection[] {
-  const timestamp = (game: Game) => {
-    const time = gameDate(game.game_date).getTime();
-    return Number.isFinite(time) ? time : Infinity;
-  };
-  const sorted = [...games].sort((a, b) => timestamp(a) - timestamp(b) || a.id.localeCompare(b.id));
+export function buildDatedGameSections(games: Game[], pins: readonly string[] = [], now: Date = new Date()): DatedGameSection[] {
   const pinnedIds = new Set(pins);
-  const pinned: DatedGameSection = { key: 'pinned', dateLabel: 'Pinned', data: [] };
-  const days = new Map<string, DatedGameSection>();
+  const pinned: DatedGameSection = {
+    key: 'pinned', dateLabel: 'Pinned', data: games.filter(game => pinnedIds.has(game.id)).sort(compareKickoff),
+  };
+  const sorted = games.filter(game => !pinnedIds.has(game.id)).sort((a, b) => compareGames(a, b, now));
+  const sections: DatedGameSection[] = pinned.data.length ? [pinned] : [];
+  const occurrences = new Map<string, number>();
+  let previousDate: string | undefined;
   for (const game of sorted) {
-    if (pinnedIds.has(game.id)) {
-      pinned.data.push(game);
-      continue;
+    const date = localDateKey(gameDate(game.game_date));
+    // Group only adjacent dates: merging every game on a date would undo live
+    // clock ordering and mix older finals into the upcoming portion of the list.
+    if (date !== previousDate) {
+      const occurrence = (occurrences.get(date) ?? 0) + 1;
+      occurrences.set(date, occurrence);
+      sections.push({ key: `${date}:${occurrence}`, dateLabel: localGameTime(game).date, data: [] });
+      previousDate = date;
     }
-    const date = gameDate(game.game_date);
-    const key = Number.isFinite(date.getTime())
-      ? `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}` : 'unknown';
-    let group = days.get(key);
-    if (!group) {
-      group = { key, dateLabel: localGameTime(game).date, data: [] };
-      days.set(key, group);
-    }
-    group.data.push(game);
+    sections[sections.length - 1].data.push(game);
   }
-  return [...(pinned.data.length ? [pinned] : []), ...days.values()];
+  return sections;
 }

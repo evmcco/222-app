@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { colors, spacing, type } from '@/constants/theme';
-import { demoScenarios, type DemoScenario } from '@/lib/demo-games';
+import { demoDescription, demoScenarios, type DemoScenario } from '@/lib/demo-games';
 
 const key = '222:demo-mode:v1';
 type Settings = { scenario: DemoScenario | null; hideBadge: boolean };
@@ -34,11 +34,12 @@ export function DemoController({ children }: { children: (controls: DemoControls
       <ScrollView contentInsetAdjustmentBehavior="automatic" style={{ backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.xl, paddingBottom: 60, gap: spacing.md }}>
         <Text style={[type.headline, { color: colors.textPrimary }]}>Developer menu</Text>
         <Text style={[type.body, { color: colors.textSecondary }]}>Demo Mode</Text>
-        <Text style={[type.small, { color: colors.textSecondary }]}>Fictional, frozen Saturday at 2 PM Eastern. Includes Friday finals and early kickoffs. Selection survives restarts.</Text>
+        <Text style={[type.small, { color: colors.textSecondary }]}>Fictional, frozen games. Selection survives restarts. Sorting demos use your local timezone.</Text>
         {[null, ...demoScenarios].map(scenario => <Pressable key={scenario ?? 'off'} accessibilityRole="radio" accessibilityState={{ checked: settings.scenario === scenario }}
           onPress={() => update({ ...settings, scenario })} style={{ padding: spacing.md, borderRadius: 12, backgroundColor: settings.scenario === scenario ? colors.liveDim : colors.surface }}>
           <Text style={[type.body, { color: settings.scenario === scenario ? colors.live : colors.textPrimary }]}>{scenario ?? 'Off · Live data'}{settings.scenario === scenario ? ' ✓' : ''}</Text>
         </Pressable>)}
+        {settings.scenario && <Text style={[type.small, { color: colors.textSecondary }]}>{demoDescription(settings.scenario)}</Text>}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md }}>
           <Text style={[type.body, { flex: 1, color: colors.textPrimary }]}>Hide demo label for screenshots</Text>
           <Switch accessibilityLabel="Hide demo label for screenshots" value={settings.hideBadge} onValueChange={hideBadge => update({ ...settings, hideBadge })} />
