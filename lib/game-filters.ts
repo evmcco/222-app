@@ -19,6 +19,13 @@ const stateNames: Record<string, string> = {
   VT: 'Vermont', AK: 'Alaska',
 };
 export const basicFilterOptions: FilterOption[] = [{ value: 'all', label: 'All games' }, { value: 'ranked', label: 'Ranked' }];
+export function conferenceAbbreviation(name: string): string {
+  return ({
+    'Big Ten': 'B1G', 'Big 12': 'B12', American: 'AAC',
+    'Conference USA': 'CUSA', 'Mid-American': 'MAC', 'Mountain West': 'MWC',
+    'Pac-12': 'PAC-12', 'Sun Belt': 'SBC', Independents: 'IND',
+  } as Record<string, string>)[name] ?? name;
+}
 export function makeTeamCatalog(rows: unknown, season: number): TeamCatalog {
   if (!Array.isArray(rows) || rows.length < 230 || rows.length > 500) throw new Error('Team metadata is incomplete');
   const teams: Record<string, TeamMetadata> = {};
@@ -45,7 +52,8 @@ export function getFilterOptions(catalog?: TeamCatalog): FilterOption[] {
     ...conferences.map(team => {
       const group = seen.has(team.conference_tier) ? undefined : ({ p4: 'P4 Conferences', g6: 'G6 Conferences', independent: undefined, fcs: undefined }[team.conference_tier]);
       seen.add(team.conference_tier);
-      return { value: `conference:${team.conference_id}` as GameFilter, label: team.conference_name, group };
+      return { value: `conference:${team.conference_id}` as GameFilter,
+        label: team.conference_tier === 'g6' ? conferenceAbbreviation(team.conference_name) : team.conference_name, group };
     }),
     ...[...new Set(fbs.map(team => team.state))].filter(state => stateNames[state])
       .sort((a, b) => stateNames[a].localeCompare(stateNames[b]))

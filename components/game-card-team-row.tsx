@@ -1,6 +1,6 @@
 import { AnimatedScore } from '@/components/animated-score';
 import { colors, radius, spacing, type } from '@/constants/theme';
-import { Image } from 'expo-image';
+import { TeamLogo } from '@/components/team-logo';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -26,7 +26,7 @@ export const GameCardTeamRow = ({
       <View style={styles.teamInfo}>
         <View style={styles.teamNameContainer}>
           {logo && (
-            <Image source={{ uri: logo }} style={styles.logo} contentFit="contain" />
+            <TeamLogo logo={logo} style={styles.logo} contentFit="contain" />
           )}
           {ranking && ranking <= 25 && (
             <View style={styles.ranking}>

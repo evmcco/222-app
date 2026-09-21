@@ -1,4 +1,4 @@
-import { DemoController, type DemoControls } from '@/components/demo-controller';
+import { useDemoControls, type DemoControls } from '@/components/demo-controller';
 import { demoCatalog, demoDetails, demoWeek, gamesForDemo, narrativesForDemo, nowForDemo, pinsForDemo } from '@/lib/demo-games';
 import type { GameFilter } from '@/lib/game-filters';
 import { WeekSwipeArea } from '@/components/week-swipe-area';
@@ -76,9 +76,10 @@ function CardSeparator(): React.JSX.Element {
 }
 
 export default function HomeScreen() {
-  return __DEV__ ? <DemoController>{controls => controls.scenario
+  const controls = useDemoControls();
+  return controls?.scenario
     ? <DemoHome key={controls.scenario} controls={controls} />
-    : <LiveHome controls={controls} />}</DemoController> : <LiveHome />;
+    : <LiveHome controls={controls} />;
 }
 
 function LiveHome({ controls }: { controls?: DemoControls }) {
@@ -97,7 +98,7 @@ function DemoHome({ controls }: { controls: DemoControls }) {
   const demoNow = useMemo(() => nowForDemo(controls.scenario!), [controls.scenario]);
   const demoNarratives = useMemo(() => narrativesForDemo(games), [games]);
   return <HomeView controls={controls} sortingDate={demoNow}
-    source={{ games, week: demoWeek, weeks: [demoWeek.week_number], loading: false, error: null, refetch: async () => [], selectWeek: () => {} }}
+    source={{ games, recordsCurrent: true, week: demoWeek, weeks: [demoWeek.week_number], loading: false, error: null, refetch: async () => [], selectWeek: () => {} }}
     preferences={{ filter, pins, ready: true, setFilter, togglePin: id => setPins(current => current.includes(id) ? current.filter(pin => pin !== id) : [...current, id]) }}
     metadata={{ catalog: demoCatalog, loading: false }}
     narratives={{ narrativesByGameId: demoNarratives, refetch: async () => [] }} />;
@@ -164,14 +165,14 @@ function HomeView({ source, preferences, metadata, narratives, controls, sorting
     <View
       style={[
         styles.screen,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        { paddingTop: insets.top },
       ]}
     >
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <Pressable disabled={!__DEV__} onPress={onLogoPress} accessibilityRole={__DEV__ ? "button" : undefined} accessibilityLabel={__DEV__ ? "222 logo. Double tap to open developer menu" : "222"} hitSlop={8}>
           <Image
-            source={require('../assets/images/222-logo.png')}
+            testID="games-brand" source={require('../../assets/images/222-logo.png')}
             style={styles.logo}
             contentFit="contain"
           />

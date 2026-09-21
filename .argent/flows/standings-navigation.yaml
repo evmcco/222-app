@@ -1,0 +1,10 @@
+executionPrerequisite: iOS development app connected to Metro, Saturday demo selected, Games tab visible, Standings has not yet been opened since reload, no modals open. Fixture team names and records are frozen.
+steps:
+  - tap: { text: 'Standings, tab, 2 of 2' }
+  - await: { visible: { text: 'Choose poll' } }
+  - await: { idle: true }
+  - tap: { text: 'Rank 1, Kansas, 3–0 overall. Expand schedule' }
+  - await: { visible: { text: 'Kansas, 3–0 overall. Collapse' } }
+  - tap: { text: 'Rank 2, North Carolina, 3–0 overall. Expand schedule' }
+  - await: { visible: { text: 'North Carolina, 3–0 overall. Collapse' } }
+  - await: { visible: { text: 'Kansas, 3–0 overall. Collapse' } }

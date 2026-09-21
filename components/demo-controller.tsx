@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { colors, spacing, type } from '@/constants/theme';
 import { demoDescription, demoScenarios, type DemoScenario } from '@/lib/demo-games';
@@ -50,4 +50,10 @@ export function DemoController({ children }: { children: (controls: DemoControls
       </ScrollView>
     </Modal>
   </>;
+}
+
+const DemoContext = createContext<DemoControls | undefined>(undefined);
+export const useDemoControls = () => useContext(DemoContext);
+export function DemoProvider({ children }: { children: React.ReactNode }) {
+  return __DEV__ ? <DemoController>{controls => <DemoContext.Provider value={controls}>{children}</DemoContext.Provider>}</DemoController> : <>{children}</>;
 }

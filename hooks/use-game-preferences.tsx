@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Alert } from 'react-native';
 import { type GameFilter, isGameFilter } from '@/lib/game-filters';
 
@@ -7,7 +7,7 @@ const STORAGE_KEY = '222:game-preferences:v1';
 type Preferences = { filter: GameFilter; pins: string[] };
 const defaults: Preferences = { filter: 'all', pins: [] };
 
-export function useGamePreferences() {
+function useStoredPreferences() {
   const [preferences, setPreferences] = useState<Preferences>(defaults);
   const [ready, setReady] = useState(false);
   const queue = useRef(Promise.resolve());
@@ -45,4 +45,15 @@ export function useGamePreferences() {
     setFilter: (filter: GameFilter) => { if (ready) { dirty.current = true; setPreferences(current => ({ ...current, filter })); } },
     togglePin: (id: string) => { if (ready) { dirty.current = true; setPreferences(current => ({ ...current, pins: current.pins.includes(id) ? current.pins.filter(pin => pin !== id) : [...current.pins, id] })); } },
   };
+}
+
+const PreferencesContext = createContext<ReturnType<typeof useStoredPreferences> | null>(null);
+export function GamePreferencesProvider({ children }: { children: ReactNode }) {
+  const preferences = useStoredPreferences();
+  return <PreferencesContext.Provider value={preferences}>{children}</PreferencesContext.Provider>;
+}
+export function useGamePreferences() {
+  const preferences = useContext(PreferencesContext);
+  if (!preferences) throw new Error('GamePreferencesProvider is required');
+  return preferences;
 }

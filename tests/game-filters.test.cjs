@@ -35,7 +35,7 @@ test('unpin restores normal grouping and interrupted finals do not duplicate', (
   assert.deepEqual(sections.map(s => [s.key, s.data.map(g => g.id)]), [['delayed', ['b']], ['scheduled', ['c']], ['final', ['a']]]);
 });
 test('menu order, single values and states are valid', () => {
-  assert.deepEqual(filterOptions.slice(0, 13).map(o => o.label), ['All games', 'Ranked', 'ACC', 'Big 12', 'Big Ten', 'SEC', 'American', 'Conference USA', 'Mid-American', 'Mountain West', 'Pac-12', 'Sun Belt', 'Independents']);
+  assert.deepEqual(filterOptions.slice(0, 13).map(o => o.label), ['All games', 'Ranked', 'ACC', 'Big 12', 'Big Ten', 'SEC', 'AAC', 'CUSA', 'MAC', 'MWC', 'PAC-12', 'SBC', 'Independents']);
   const states = filterOptions.slice(13).map(o => o.label);
   assert.deepEqual(states, [...states].sort((a, b) => a.localeCompare(b)));
   assert(!states.includes('Alaska'));

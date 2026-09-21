@@ -6,7 +6,7 @@ import type { Game } from '@/hooks/games';
 import type { GameNarrative as Narrative } from '@/hooks/narratives';
 import { useReduceMotion } from '@/hooks/use-reduce-motion';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
+import { TeamLogo } from '@/components/team-logo';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { PeriodScoreboard } from '@/components/period-scoreboard';
 import {
@@ -126,7 +126,7 @@ function DrawerTeamRow({
 }) {
   return (
     <View style={styles.teamRow}>
-      {logo ? <Image source={{ uri: logo }} style={styles.teamLogo} contentFit="contain" /> : null}
+      {logo ? <TeamLogo logo={logo} style={styles.teamLogo} contentFit="contain" /> : null}
       <View style={styles.teamIdentity}>
         <Text style={[type.body, styles.teamName]} numberOfLines={1}>
           {name}

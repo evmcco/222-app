@@ -1,6 +1,6 @@
 import { colors, radius, spacing, type } from '@/constants/theme';
 import type { Game } from '@/hooks/games';
-import { Image } from 'expo-image';
+import { TeamLogo } from '@/components/team-logo';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 export function PeriodScoreboard({ game }: { game: Game }) {
@@ -26,7 +26,7 @@ export function PeriodScoreboard({ game }: { game: Game }) {
             <Text style={styles.columnLabel}>TEAM</Text>
           </View>
           {teams.map(({ team }) => <View key={team.id} style={[styles.identity, { height: rowHeight }]}>
-            <Image source={{ uri: team.logo }} style={styles.logo} contentFit="contain" />
+            <TeamLogo logo={team.logo} style={styles.logo} contentFit="contain" />
             <Text numberOfLines={1} style={styles.team} accessibilityLabel={team.name}>{team.abbreviation}</Text>
           </View>)}
         </View>

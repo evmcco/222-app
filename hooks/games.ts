@@ -1,8 +1,10 @@
+import { shouldUseLegacyGames } from '@/lib/games-source';
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useGameInterruptions } from '@/hooks/game-interruptions';
 import { compareGames } from '@/lib/game-sort';
-import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
+import { useCompetitionData } from './use-competition-data';
 import { fetch } from 'expo/fetch';
 import { matchesSelectedWeek, openingWeekStart, resolveCfbWeek, type CfbCalendar, type CfbWeek } from '@/lib/cfb-week';
 import { supabase } from '../lib/supabase';
@@ -42,6 +44,7 @@ export interface GameRow {
   created_at: string;
   updated_at: string;
   completed_at?: string | null;
+  conference_competition?: boolean | null;
   interruption?: string;
 }
 
@@ -51,57 +54,8 @@ export interface Game extends GameRow {
   away_team: Team;
 }
 
-// Use Supabase's built-in payload type
-export type GameRealtimePayload = RealtimePostgresChangesPayload<GameRow>;
-
-interface GamesResult {
-  week: CfbWeek | null;
-  games: Game[];
-}
-
-let lastCalendar: CfbCalendar | undefined;
-
-async function fetchCurrentCfbWeek(): Promise<CfbWeek | null> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
-  try {
-    const response = await fetch(
-      'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80',
-      { signal: controller.signal },
-    );
-    if (!response.ok) throw new Error(`ESPN calendar unavailable (${response.status})`);
-    const calendar: CfbCalendar = await response.json();
-    const week = resolveCfbWeek(calendar);
-    if (!week) throw new Error('ESPN calendar is missing season/week metadata');
-    lastCalendar = calendar;
-    return week;
-  } catch (error) {
-    console.warn('Using cached calendar or latest ingested CFB week:', error);
-    if (lastCalendar) return resolveCfbWeek(lastCalendar);
-  } finally {
-    clearTimeout(timeout);
-  }
-
-  // The daily job caches the calendar, so importing December cannot select it in September.
-  const { data: saved } = await supabase.from('cfb_calendars')
-    .select('calendar').order('season_year', { ascending: false }).limit(1).maybeSingle();
-  if (saved?.calendar) {
-    const resolved = resolveCfbWeek(saved.calendar as CfbCalendar);
-    if (resolved) { lastCalendar = saved.calendar as CfbCalendar; return resolved; }
-  }
-  // Final fallback: closest upcoming game, then most recent past game; never maximum week.
-  const now = new Date().toISOString();
-  const { data: next, error: nextError } = await supabase.from('games')
-    .select('season_year,season_type,week_number').gte('game_date', now)
-    .order('game_date', { ascending: true }).limit(1).maybeSingle();
-  if (nextError) throw nextError;
-  if (next) return next;
-  const { data, error } = await supabase.from('games')
-    .select('season_year,season_type,week_number').lte('game_date', now)
-    .order('game_date', { ascending: false }).limit(1).maybeSingle();
-  if (error) throw error;
-  return data;
-}
+interface GamesResult { week: CfbWeek | null; games: Game[] }
+type GameRealtimePayload = RealtimePostgresChangesPayload<GameRow>;
 
 async function fetchGames(week: CfbWeek | null, splitWeekZero: boolean): Promise<GamesResult> {
   if (!week) return { week: null, games: [] };
@@ -187,9 +141,51 @@ function createGamesSubscription(queryClient: QueryClient, queryKey: readonly (s
   };
 }
 
-export function useGames() {
-  const queryClient = useQueryClient();
-  const [selection, setSelection] = useState<CfbWeek | null>(null);
+let lastCalendar: CfbCalendar | undefined;
+
+async function fetchCurrentCfbWeek(): Promise<CfbWeek | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(
+      'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80',
+      { signal: controller.signal },
+    );
+    if (!response.ok) throw new Error(`ESPN calendar unavailable (${response.status})`);
+    const calendar: CfbCalendar = await response.json();
+    const week = resolveCfbWeek(calendar);
+    if (!week) throw new Error('ESPN calendar is missing season/week metadata');
+    lastCalendar = calendar;
+    return week;
+  } catch (error) {
+    console.warn('Using cached calendar or latest ingested CFB week:', error);
+    if (lastCalendar) return resolveCfbWeek(lastCalendar);
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  // The daily job caches the calendar, so importing December cannot select it in September.
+  const { data: saved } = await supabase.from('cfb_calendars')
+    .select('calendar').order('season_year', { ascending: false }).limit(1).maybeSingle();
+  if (saved?.calendar) {
+    const resolved = resolveCfbWeek(saved.calendar as CfbCalendar);
+    if (resolved) { lastCalendar = saved.calendar as CfbCalendar; return resolved; }
+  }
+  // Final fallback: closest upcoming game, then most recent past game; never maximum week.
+  const now = new Date().toISOString();
+  const { data: next, error: nextError } = await supabase.from('games')
+    .select('season_year,season_type,week_number').gte('game_date', now)
+    .order('game_date', { ascending: true }).limit(1).maybeSingle();
+  if (nextError) throw nextError;
+  if (next) return next;
+  const { data, error } = await supabase.from('games')
+    .select('season_year,season_type,week_number').lte('game_date', now)
+    .order('game_date', { ascending: false }).limit(1).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+function useCfbCalendar() {
   const calendar = useQuery({
     queryKey: ['cfb-calendar', 'week-selector'],
     queryFn: async () => {
@@ -212,41 +208,54 @@ export function useGames() {
     staleTime: 5 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
   });
+  return calendar;
+}
+export function useCurrentSeason() {
+  const calendar = useCfbCalendar();
+  return { seasonYear: calendar.data?.current?.season_year ?? null, isLoading: calendar.isLoading,
+    error: calendar.error?.message ?? null, refetch: calendar.refetch };
+}
+export function useGames() {
+  const queryClient = useQueryClient();
+  const [selection, setSelection] = useState<CfbWeek | null>(null);
+  const calendar = useCfbCalendar();
   const splitWeekZero = calendar.data?.splitWeekZero ?? false;
   const week = selection ?? calendar.data?.current ?? null;
   const seasonYear = week?.season_year ?? null;
   const weekNumber = week?.week_number ?? null;
   const seasonType = week?.season_type ?? 2;
   const interruptions = useGameInterruptions(seasonYear, splitWeekZero && weekNumber === 0 ? 1 : weekNumber, seasonType);
-  const queryKey = useMemo(() => ['games', 'cfb-week', seasonYear, seasonType, weekNumber, splitWeekZero ? 'split-zero' : 'native-zero'], [seasonYear, seasonType, weekNumber, splitWeekZero]);
-  const query = useQuery({
-    queryKey,
+  const query = useCompetitionData(seasonYear);
+  const legacyEnabled = shouldUseLegacyGames(!!query.data, query.error);
+  const legacyKey = useMemo(() => ['games', 'rollout-fallback', seasonYear, seasonType, weekNumber, splitWeekZero ? 'split-zero' : 'native-zero'], [seasonYear, seasonType, weekNumber, splitWeekZero]);
+  const legacy = useQuery({
+    queryKey: legacyKey,
     queryFn: () => fetchGames(week, splitWeekZero),
-    enabled: week !== null,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
+    enabled: legacyEnabled && week !== null,
+    staleTime: 30_000,
+    refetchInterval: legacyEnabled ? 30_000 : false,
   });
-
   useEffect(() => {
-    if (weekNumber === null) return;
-    return createGamesSubscription(queryClient, queryKey, splitWeekZero);
-  }, [queryClient, queryKey, weekNumber, splitWeekZero]);
-
-  const games = useMemo(() => (query.data?.games || []).map(game => {
+    if (!legacyEnabled || weekNumber === null) return;
+    return createGamesSubscription(queryClient, legacyKey, splitWeekZero);
+  }, [legacyEnabled, weekNumber, queryClient, legacyKey, splitWeekZero]);
+  const sourceGames = legacyEnabled ? legacy.data?.games : query.data?.games;
+  const games = useMemo(() => (sourceGames || []).filter(game => week && matchesSelectedWeek(game, week, splitWeekZero)).map(game => {
+      game = { ...game, week_number: weekNumber ?? game.week_number };
       const interruption = game.status !== 'final' ? interruptions.data?.[game.id] : null;
       return interruption ? {
         ...game,
         interruption: interruption.label,
         status: interruption.beforeKickoff ? 'scheduled' as const : game.status,
       } : game;
-    }), [query.data?.games, interruptions.data]);
+    }).sort(compareGames), [sourceGames, interruptions.data, week, splitWeekZero, weekNumber]);
 
   return {
     games,
-    loading: calendar.isLoading || (week !== null && query.isLoading),
-    error: calendar.error?.message || query.error?.message || null,
-    refetch: () => Promise.all([calendar.refetch(), interruptions.refetch(), ...(week ? [query.refetch()] : [])]),
+    loading: calendar.isLoading || (week !== null && (legacyEnabled ? legacy.isLoading : query.isLoading)),
+    error: calendar.error?.message || (legacyEnabled ? legacy.error?.message : query.error) || null,
+    recordsCurrent: query.isCurrent,
+    refetch: () => Promise.all([calendar.refetch(), interruptions.refetch(), ...(week ? [query.refetch(), ...(legacyEnabled ? [legacy.refetch()] : [])] : [])]),
     week,
     weeks: calendar.data?.weeks ?? [],
     selectWeek: (weekNumber: number) => {
