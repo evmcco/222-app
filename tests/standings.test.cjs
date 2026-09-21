@@ -155,3 +155,23 @@ test('ranked teams use the current season conference abbreviation, with snapshot
   data.standings = [{ conference_id: team.conference_id, conference_name: 'Conference USA', entries: [{ team_id: team.team_id }] }];
   assert.equal(select(undefined).conferenceAbbreviation, 'CUSA');
 });
+
+test('others receiving votes follow the selected poll and never receive rank badges', () => {
+  const data = createStandingsDemo();
+  for (const poll of ['ap', 'usa']) {
+    data.rankings[poll].others_receiving_votes.reverse();
+    const selected = selectStandings(data, 'top25', poll, '8');
+    assert.equal(selected.rows.length, 25);
+    assert.deepEqual(selected.othersReceivingVotes.map(row => row.points), [42, 36, 30, 24, 18, 12, 6]);
+    for (const row of selected.othersReceivingVotes) {
+      assert.equal(selected.ranks.has(row.team.id), false);
+      assert.equal(row.team.name, data.teams[row.team.id].name);
+    }
+  }
+  assert.deepEqual(selectStandings(data, 'conferences', 'ap', '8').othersReceivingVotes, []);
+  assert.deepEqual(selectStandings(data, 'top25', 'cfp', '8').othersReceivingVotes, []);
+  for (const others of [undefined, null, []]) {
+    data.rankings.ap.others_receiving_votes = others;
+    assert.deepEqual(selectStandings(data, 'top25', 'ap', '8').othersReceivingVotes, []);
+  }
+});

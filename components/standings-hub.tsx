@@ -12,6 +12,7 @@ import { currentRank, gameResult, opponentFor, pollNames, recordLabel, teamSched
 
 export type HubData = {
   rows: StandingRow[];
+  othersReceivingVotes: { team: StandingRow['team']; points: number }[];
   games: ScheduleGame[];
   ranks: ReadonlyMap<string, number>;
   conferences: { id: string; name: string; group?: string }[];
@@ -123,7 +124,18 @@ export function StandingsHub({ data, view, poll, conference, onView, onPoll, onC
           </View>
         </>;
       }}
-      ListFooterComponent={conferenceOnly && hasRows ? <Text style={[type.small, styles.secondary, styles.footer]}>Sorted by conference wins, then fewest conference losses, then team name (A–Z). Tiebreakers are hard. We’ll add them when they start to matter.</Text> : null}
+      ListFooterComponent={conferenceOnly && hasRows ? <Text style={[type.small, styles.secondary, styles.footer]}>Sorted by conference wins, then fewest conference losses, then team name (A–Z). Tiebreakers are hard. We’ll add them when they start to matter.</Text>
+        : hasRows && data.othersReceivingVotes.length > 0 ? <View style={styles.others} testID="others-receiving-votes">
+          <Text accessibilityRole="header" style={[type.headline, styles.primary]}>Others Receiving Votes</Text>
+          <View style={styles.othersTeams}>
+            {data.othersReceivingVotes.map(({ team, points }) => <View key={team.id} style={styles.othersTeam} accessible accessibilityLabel={`${team.name}, ${points} ${points === 1 ? 'point' : 'points'}`}>
+              <TeamLogo logo={team.logo} contentFit="contain" style={styles.othersLogo} />
+              <Text style={[type.small, styles.othersName]}>{team.abbreviation}</Text>
+              <Text style={[type.small, styles.secondary, styles.stat]}>{points}</Text>
+            </View>)}
+          </View>
+          <Text style={[type.small, styles.secondary]}>Total poll points</Text>
+        </View> : null}
       ListEmptyComponent={data.loading ? <StandingsSkeleton /> : <View style={styles.empty}>
         <Ionicons name={data.error ? 'cloud-offline-outline' : 'podium-outline'} size={32} color={colors.textTertiary} />
         <Text style={[type.headline, styles.primary]}>{data.error ? 'Standings unavailable' : !conferenceOnly && poll === 'cfp' ? 'CFP rankings aren’t out yet' : conferenceOnly ? 'Standings are on the way' : 'This poll isn’t available yet'}</Text>
@@ -181,6 +193,11 @@ const styles = StyleSheet.create({
   rankText: { fontSize: 9, lineHeight: 13, fontWeight: '800', color: colors.textPrimary, fontVariant: ['tabular-nums'] },
   result: { fontSize: 11, lineHeight: 16, fontWeight: '800' },
   noSchedule: { padding: spacing.lg, paddingTop: 0 },
+  others: { paddingTop: spacing.lg, paddingBottom: spacing.sm, gap: spacing.md },
+  othersTeams: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  othersTeam: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: spacing.sm },
+  othersLogo: { width: 22, height: 22 },
+  othersName: { color: colors.textPrimary, fontWeight: '600' },
   footer: { paddingHorizontal: spacing.sm, paddingTop: spacing.md, lineHeight: 20 },
   notice: { marginHorizontal: spacing.xl, marginBottom: spacing.md, minHeight: 32, justifyContent: 'center' },
   empty: { paddingTop: spacing.xxxl, gap: spacing.md, alignItems: 'center' },

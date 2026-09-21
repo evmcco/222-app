@@ -6,9 +6,11 @@ export interface TeamSeasonRecord {
   overall_ready: boolean; conference_ready: boolean; updated_at: string;
 }
 export interface RankingEntry { team_id: string; rank: number; previous_rank: number | null; points: number | null; first_place_votes: number | null }
+export interface ReceivingVotesEntry { team_id: string; points: number }
 export interface RankingRelease {
   id: string; season_year: number; poll: Poll; season_type: number; week_number: number;
   published_at: string; fetched_at: string; entries: RankingEntry[];
+  others_receiving_votes?: ReceivingVotesEntry[] | null;
 }
 export interface StandingEntry {
   team_id: string; group_id: string; group_name: string; position: number | null; source_order: number;

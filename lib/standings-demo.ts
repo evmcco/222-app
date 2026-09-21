@@ -40,6 +40,7 @@ export function createStandingsDemo(): CompetitionSnapshot {
   const rankingTeams = [...teams].sort((a, b) => records[b.id].wins - records[a.id].wins || a.name.localeCompare(b.name));
   const release = (poll: Poll) => ({ id: `demo:${poll}`, season_year: 2026, poll, season_type: 2, week_number: 3,
     published_at: '2026-09-20T16:00:00Z', fetched_at: '2026-09-20T16:00:00Z',
+    others_receiving_votes: (poll === 'ap' ? rankingTeams : [...rankingTeams.slice(2), ...rankingTeams.slice(0, 2)]).slice(25).map((team, i) => ({ team_id: team.id, points: 42 - i * 6 })),
     entries: (poll === 'ap' ? rankingTeams : [...rankingTeams.slice(2), ...rankingTeams.slice(0, 2)]).slice(0, 25).map((team, i) => ({ team_id: team.id, rank: i + 1, previous_rank: i === 24 ? null : i === 0 ? 2 : i === 1 ? 1 : i + 1, points: null, first_place_votes: null })) });
   const conferences = [...new Map(demoCatalog.rows.filter(row => row.conference_tier !== 'independent').map(row => [row.conference_id, row.conference_name])).entries()];
   return { season_year: 2026, revision: 1, fetched_at: '2026-09-20T16:00:00Z', games, records, teams: Object.fromEntries(teams.map(team => [team.id, team])),

@@ -85,3 +85,5 @@ details use a local override.
   dropdown and refresh gesture replay remains unverified. Demo mode remains off.
 - ESPN exposes others receiving votes for AP and Coaches, but ingestion and display
   of that list are not included in this implementation.
+
+Others Receiving Votes appears below AP/Coaches Top 25 when provided by the release, with team logos, abbreviations, and total poll points in descending order. These teams do not receive rank badges. Older snapshots without the field and empty lists omit the section.

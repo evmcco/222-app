@@ -40,8 +40,13 @@ export function selectStandings(data: CompetitionSnapshot | undefined, view: Sta
       || a.team.id.localeCompare(b.team.id));
     rows.forEach((row, index) => { row.position = index + 1; });
   }
+  const othersReceivingVotes = view === 'top25'
+    ? [...(release?.others_receiving_votes ?? [])].sort((a, b) => b.points - a.points).map(entry => ({
+      team: teams.get(entry.team_id) ?? { id: entry.team_id, name: 'Team unavailable', abbreviation: '—', logo: '' },
+      points: entry.points,
+    })) : [];
   const badgePoll = view === 'conferences' ? 'ap' : poll;
-  return { rows, games: data?.games ?? [], ranks: new Map((data?.rankings[badgePoll]?.entries ?? []).map(entry => [entry.team_id, entry.rank])),
+  return { rows, othersReceivingVotes, games: data?.games ?? [], ranks: new Map((data?.rankings[badgePoll]?.entries ?? []).map(entry => [entry.team_id, entry.rank])),
     conferences: getStandingsConferences(data, catalog),
     polls: availablePolls(data),
   };
